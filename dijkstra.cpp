@@ -8,8 +8,9 @@
 struct vertex_info
 {
 	string origin;
+	bool mark;
+	int distance;
 	string destination;
-	
 };
 
 int main()
@@ -17,6 +18,5 @@ int main()
 	Graph<string> myGraph(50);
 	Queue<string> myQ(50);
 	
-	int numVertices
 	return 0;
 }
