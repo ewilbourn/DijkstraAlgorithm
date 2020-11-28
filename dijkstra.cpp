@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 	printInfo(uniqueNodes, numVertices);
 	//get the starting position for the graph
 	string startingVertex;
-	cout << "Please input your starting vertex: ";
+	cout << "\n\t\tPlease input your starting vertex: ";
 	cin >> startingVertex;
 
 	//instantiate our graph and queue objects
@@ -54,24 +54,24 @@ int main(int argc, char *argv[])
 //method to print the "Dijksta's Algorithm" title and all the vertices given in the input file
 void printInfo(vector<string> uniqueNodes, int numVertices)
 {
-	cout << "^^^^^^^^^^^^^^^^    DIJKSTRA'S ALGORITHM    ^^^^^^^^^^^^^^^^\n" << endl;
-        cout << "A Weighted Graph Has Been Built For These " << numVertices << "  Cities :" << endl;
+	cout << "\t\t^^^^^^^^^^^^^^^^    DIJKSTRA'S ALGORITHM    ^^^^^^^^^^^^^^^^\n" << endl;
+        cout << "\t\tA Weighted Graph Has Been Built For These " << numVertices << "  Cities :\n" << endl;
 
 	for(int i = 0; (i+2) < uniqueNodes.size(); i+=3)
 	{
-		cout << uniqueNodes.at(i) << "\t" << uniqueNodes.at(i+1) << "\t" << uniqueNodes.at(i+2) << endl;
+		cout << "\t\t" << uniqueNodes.at(i) << "\t\t\t" << uniqueNodes.at(i+1) << "\t\t\t" << uniqueNodes.at(i+2) << endl;
 	}
 
 	//since we're printing in groups of 3's, if our number of vertices is not a multiple of 3, we need two
 	//cases to handle printing the left over vertices.
 	if(uniqueNodes.size() % 3 == 1)
 	{
-		cout << uniqueNodes.at(numVertices-1) << endl;
+		cout << "\t\t" << uniqueNodes.at(numVertices-1) << endl;
 	}
 
 	else if(uniqueNodes.size() % 3  == 2)
 	{
-		cout << uniqueNodes.at(numVertices-2) << "\t" << uniqueNodes.at(numVertices-1) << endl;
+		cout << "\t\t" << uniqueNodes.at(numVertices-2) << "\t\t\t" << uniqueNodes.at(numVertices-1) << endl;
 	}
 }
 
