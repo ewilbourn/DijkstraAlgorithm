@@ -48,19 +48,18 @@ void initializeArray(vector <vertex_info> &v, string fileName)
 			//this turns our line into an istringstream object so we can
 			//use getline on it
 			istringstream s (line);
+			
 			while (getline (s, word, ';'))
 			{
-				cout << "read word" << endl;	
 				words.push_back(word);
 				cout << word << endl;
-				cout << "end word" << endl;
 			}
 		}
 		input.close();
 	}
 
 	cout << words.size() << endl;
-	for (int i = 0; (i+2) < words.size(); i++)
+	for (int i = 0; (i+2) < words.size(); i+=3)
 	{
 		cout << "top of loop" << endl;	
 		vertex_info node;
@@ -85,6 +84,7 @@ void initializeArray(vector <vertex_info> &v, string fileName)
 		//push the node of data to our vector v
 		v.push_back(node);
 		cout << "end of loop" << endl;
+		cout << endl;
 	}
 }
 
