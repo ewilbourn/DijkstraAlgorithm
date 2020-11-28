@@ -6,6 +6,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 struct vertex_info
 {
@@ -36,15 +37,54 @@ int main(int argc, char *argv[])
 //postcondition: nothing is returned, but v is filled
 void initializeArray(vector <vertex_info> &v, string fileName)
 {
+	vector <string> words;
 	string line;
+	string word;
 	ifstream input(fileName);
 	if (input.is_open())
 	{
-		while (getline (input, line, ';'))
-		{	
-			cout << line << endl;
+		while (getline (input, line))
+		{
+			//this turns our line into an istringstream object so we can
+			//use getline on it
+			istringstream s (line);
+			while (getline (s, word, ';'))
+			{
+				cout << "read word" << endl;	
+				words.push_back(word);
+				cout << word << endl;
+				cout << "end word" << endl;
+			}
 		}
 		input.close();
+	}
+
+	cout << words.size() << endl;
+	for (int i = 0; (i+2) < words.size(); i++)
+	{
+		cout << "top of loop" << endl;	
+		vertex_info node;
+		
+		node.origin = words.at(i);		
+		cout << "origin: " << node.origin << endl;
+		
+		node.destination = words.at(i+1);
+		cout << "destination: " <<  node.destination << endl;
+	
+		//distance needs to be converted from a string to an integer
+		//string stream object that holds the string
+		stringstream s (words.at(i+2));
+
+		//the integer we are feeding the string s into
+		int d = 0;
+		s >> d;
+
+		node.distance = d;
+		cout << "distance: " << node.distance << endl;
+
+		//push the node of data to our vector v
+		v.push_back(node);
+		cout << "end of loop" << endl;
 	}
 }
 
