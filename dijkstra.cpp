@@ -26,7 +26,7 @@ void fillGraph(Graph<string> &g, vector <vertex_info> uniqueVals, vector <vertex
 void fillEdges(Graph <string> &g, vector<vertex_info> v);
 void dijkstra (Graph<string> &g,vector <vertex_info> uniqueVals, string start_vertex);
 void markAdjacent(Graph<string> g, vector<vertex_info> &uniqueVals, string current,
-		  vector<int> marked_indexes);
+		  vector<int> &marked_indexes);
 void printArray(vector<vertex_info> uniqueVals);
 
 int main(int argc, char *argv[])
@@ -266,20 +266,32 @@ void dijkstra (Graph <string> &g, vector <vertex_info> uniqueVals, string start_
 	
 	//mark the adjacent vertex for our starting vertex
 	markAdjacent(g, uniqueVals, start_vertex, marked_indexes);
+
+	//iterate through all our uniqueVals in the vector
+	for (int i = 0; i < uniqueVals.size(); i++)
+	{
+		//our current index is the index of the most recently marked vertex
+		int current_index = marked_indexes.size()-1;
+		string current = uniqueVals.at(current_index).destination;
+
+		markAdjacent(g, uniqueVals, current, marked_indexes);		
+	}
 	printArray(uniqueVals);	
 }
 
 //method to mark the adjacent matrix and update the uniqueVals
 void markAdjacent(Graph<string> g, vector<vertex_info> &uniqueVals, string current, 
-		  vector <int> marked_indexes)
+		  vector <int> &marked_indexes)
 {
 	Queue <string> q(uniqueVals.size());
 	//fill queue with adjacent vertices to the start_vertex
 	g.GetToVertices(current, q);
+	cout << "current: " << current << endl;
+
 	while(!q.isEmpty())
 	{
 		string front = q.getFront();
-		cout << "front: " << front << endl;		
+	//	cout << "front: " << front << endl;		
 		
 		int weight_graph = g.WeightIs(current, front);
 		
@@ -299,9 +311,9 @@ void markAdjacent(Graph<string> g, vector<vertex_info> &uniqueVals, string curre
 		//value plus the distance of the last marked vertex or the distance is 
 		//-1, meaning it hasn't been visited...	
 		// 0 = false, 1 = true
-		cout << "front is Marked? " << g.IsMarked(front) << endl;	
-		cout << "weight_vector: " << weight_vector << endl;
-		cout << "sum: " << sum << endl;
+	//	cout << "front is Marked? " << g.IsMarked(front) << endl;	
+	//	cout << "weight_vector: " << weight_vector << endl;
+	//	cout << "sum: " << sum << endl;
 		if (!g.IsMarked(front) && ((weight_vector > sum) || weight_vector == -1))
 		{
 			//reset distance value of adjacent vertex to the smaller sum and 
@@ -343,6 +355,11 @@ void printSpaces(int numSpaces)
 
 void printArray(vector<vertex_info> uniqueVals)
 {	
+	//sort vector of structs by the destination
+	sort(uniqueVals.begin(), uniqueVals.end(), [] (const vertex_info &left, const vertex_info &right)
+	{
+		return (left.distance < right.distance);
+	});
 	cout << "\t\t--------------------------------------------------------------------------" << endl;
 		
 	//get the proper spacing for printing:
