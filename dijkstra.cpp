@@ -29,6 +29,9 @@ void adjacentDistUpdate(Graph<string> g, vector<vertex_info> &uniqueVals, string
 		  vector<int> &marked_indexes);
 void markVertex(Graph<string> &g, vector<vertex_info>&uniqueVals, vector<int> &markedIndexes);
 void printArray(vector<vertex_info> uniqueVals);
+void printSpaces(int numSpaces);
+int s_numSpaces(string vertex);
+int n_numSpaces(int value);
 
 int main(int argc, char *argv[])
 {
@@ -67,6 +70,7 @@ int main(int argc, char *argv[])
 
 	//call to perform Dijkstra's Algorithm given the starting vertex
 	dijkstra(myGraph, uniqueVals, startingVertex);	
+
 	return 0;
 }
 
@@ -76,21 +80,15 @@ void printInfo(vector<vertex_info> uniqueNodes, int numVertices)
 	cout << "\t\t^^^^^^^^^^^^^^^^    DIJKSTRA'S ALGORITHM    ^^^^^^^^^^^^^^^^\n" << endl;
         cout << "\t\tA Weighted Graph Has Been Built For These " << numVertices << "  Cities :\n" << endl;
 
-	for(int i = 0; (i+2) < uniqueNodes.size(); i+=3)
+	//for(int i = 0; (i+2) < uniqueNodes.size(); i+=3)
+	for (int i = 0; i < uniqueNodes.size(); i++)
 	{
-		cout << "\t\t" << uniqueNodes.at(i).destination << "\t\t\t" << uniqueNodes.at(i+1).destination << "\t\t\t" << uniqueNodes.at(i+2).destination << endl;
-	}
-
-	//since we're printing in groups of 3's, if our number of vertices is not a multiple of 3, we need two
-	//cases to handle printing the left over vertices.
-	if(uniqueNodes.size() % 3 == 1)
-	{
-		cout << "\t\t" << uniqueNodes.at(numVertices-1).destination << endl;
-	}
-
-	else if(uniqueNodes.size() % 3  == 2)
-	{
-		cout << "\t\t" << uniqueNodes.at(numVertices-2).destination << "\t\t\t" << uniqueNodes.at(numVertices-1).destination << endl;
+		int numSpaces = s_numSpaces(uniqueNodes.at(i).destination);
+		printSpaces(numSpaces);
+		cout << uniqueNodes.at(i).destination;
+		
+		if ((i+1)%3 == 0)
+			cout << endl;
 	}
 }
 
@@ -247,7 +245,6 @@ void dijkstra (Graph <string> &g, vector <vertex_info> uniqueVals, string start_
 	//and so on.
 	vector <int> marked_indexes;
 
-
 	//start by dealing with first/starting vertex
 	
 	//mark the first vertex
@@ -268,7 +265,7 @@ void dijkstra (Graph <string> &g, vector <vertex_info> uniqueVals, string start_
 	//mark the adjacent vertex for our starting vertex
 	adjacentDistUpdate(g, uniqueVals, start_vertex, marked_indexes);
 	markVertex(g, uniqueVals, marked_indexes);		
-	//cout << "marked_indexes.size(): " << marked_indexes.size() << endl;
+
 	//iterate through all our uniqueVals in the vector
 	for (int i = 0; i < uniqueVals.size(); i++)
 	{
@@ -287,11 +284,12 @@ void dijkstra (Graph <string> &g, vector <vertex_info> uniqueVals, string start_
 void adjacentDistUpdate(Graph<string> g, vector<vertex_info> &uniqueVals, string current, 
 		  vector <int> &marked_indexes)
 {
+	//cout << "in adjacentDistUpdate" << endl;
+
 	Queue <string> q(uniqueVals.size());
 	//fill queue with adjacent vertices to the start_vertex
 	g.GetToVertices(current, q);
 	//cout << "current: " << current << endl;
-	g.GetToVertices(current, q);
 	while(!q.isEmpty())
 	{
 		string front = q.getFront();
@@ -313,8 +311,6 @@ void adjacentDistUpdate(Graph<string> g, vector<vertex_info> &uniqueVals, string
 		//if the adjacent vertex is currently unmarked and its distance
 		//value in local vector is greater than the sum of the weight
 		//value plus the distance of the last marked vertex or the distance is 
-		//-1, meaning it hasn't been visited...	
-		// 0 = false, 1 = true
 		//cout << "front is Marked? 0 = false, 1 = true" << g.IsMarked(front) << endl;	
 		//cout << "weight_vector: " << weight_vector << endl;
 		//cout << "sum: " << sum << endl;
