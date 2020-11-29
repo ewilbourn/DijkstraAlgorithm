@@ -20,10 +20,11 @@ struct vertex_info
 void printInfo(vector<vertex_info> uniqueNodes, int numVertices);
 void initializeArray(/*Graph<string> &g, */vector <vertex_info> &v, string fileName);
 vector <vertex_info> uniquePlaces(vector <vertex_info> v);
-void fillVertices(Graph <string> &g, vector<string> place);
-void fillGraph(Graph<string> &g, vector<string> place, vector <vertex_info> v, string start_pos);
+void fillVertices(Graph <string> &g, vector<vertex_info> place);
+void fillGraph(Graph<string> &g, vector <vertex_info> uniqueVals, vector <vertex_info> v);
 void fillEdges(Graph <string> &g, vector<vertex_info> v);
-//HashTable<string> fillHashTable(vector <string> unique_places);
+void dijkstra (Graph<string> &g,vector <vertex_info> uniqueVals, string start_vertex);
+void printArray(vector<vertex_info> uniqueVals);
 
 int main(int argc, char *argv[])
 {
@@ -56,7 +57,10 @@ int main(int argc, char *argv[])
 
 	//instantiate our graph and queue objects
 	Graph<string> myGraph(numVertices);
-	Queue<string> myQ(numVertices);
+	
+	fillGraph(myGraph, uniqueVals, v);
+	dijkstra(myGraph, uniqueVals, startingVertex);	
+//	Queue<string> myQ(numVertices);
 	return 0;
 }
 
@@ -187,11 +191,11 @@ vector <vertex_info> uniquePlaces(vector <vertex_info> v)
 }
 //method to fill in our vertices for our graph
 //precondition: pass in the graph object     
-void fillVertices(Graph <string> &g, vector<string> place)
+void fillVertices(Graph <string> &g, vector<vertex_info> place)
 {
 	for (int i = 0; i < place.size(); i++)
 	{
-		g.AddVertex(place.at(i));
+		g.AddVertex(place.at(i).destination);
 	}
 }     
 
@@ -204,12 +208,82 @@ void fillEdges(Graph <string> &g, vector<vertex_info> v)
 	}
 }
 
-void fillGraph(Graph<string> &g, vector<string> place, vector <vertex_info> v, string start_vertex)
+//method to fill our graph  
+void fillGraph(Graph<string> &g, vector<vertex_info> uniqueVals, vector <vertex_info> v)
 {
-	fillVertices(g, place);
+	fillVertices(g, uniqueVals);
 	fillEdges(g, v);	
-	
-	//mark the first vertex
-	g.MarkVertex(start_vertex);		
 }      
 
+//method to return the index of a given vertex we're looking for
+int findVertex(vector<vertex_info> uniqueVals, string vertex)
+{
+	//instantiate this to -1 so that if it isn't found, we'll return -1
+	int location = -1;
+	for (int i = 0; i < uniqueVals.size(); i++)
+	{
+		if(uniqueVals.at(i).destination.compare(vertex) == 0)
+		{
+			location = i;			
+			break;
+		}
+	}	
+	return location;
+}
+
+void dijkstra (Graph <string> &g, vector <vertex_info> uniqueVals, string start_vertex)
+{
+	Queue <string> q(uniqueVals.size());
+
+	//Vector to hold the index of the vector we are marking in the order
+	//they are being marked; so, the integer in index 0 will be the index of 
+	//the first struct in the array of vertex_info structs that was marked, 
+	//and so on.
+	vector <int> marked_indexes;
+
+
+	//start by dealing with first/starting vertex
+	
+	//mark the first vertex
+	g.MarkVertex(start_vertex);	
+
+	//find the first vertex (selected by user) in our vector of structs
+	//and instantiate the previous vector to "N/A" and the distance to 0
+	for(int i = 0; i < uniqueVals.size(); i++)
+	{
+		if (uniqueVals.at(i).destination.compare(start_vertex) == 0)
+		{
+			uniqueVals.at(i).distance = 0;
+			uniqueVals.at(i).origin = "N/A";
+		
+			//add the index of the start_vertex in the uniqueVals 
+			//vector to our marked_indexes array to know that this
+			//value was marked first.
+			marked_indexes.push_back(i);
+			break;
+		}		
+	}
+	printArray(uniqueVals);	
+	//fill queue with adjacent vertices to the start_vertex
+	g.GetToVertices(start_vertex, q);
+	while(!q.isEmpty())
+	{
+		string front = q.getFront();
+		
+		//if the adjacent vertex is currently unmarked and its distance
+		//value in local vector is greater than the sum of the weight
+		//value plus the distance of the last marked vertex	
+	} 
+}
+
+void printArray(vector<vertex_info> uniqueVals)
+{
+	cout << "------------------------------------------------------------------" << endl;
+	cout << "	   Vertex		 Distance		   Previous" << endl;
+	for (int i = 0; i < uniqueVals.size(); i++)
+	{
+		cout << uniqueVals.at(i).destination << "\t\t" << uniqueVals.at(i).distance << "\t\t" << 
+		uniqueVals.at(i).origin << endl;	
+	}
+	cout << "------------------------------------------------------------------" << endl;
+}
