@@ -8,6 +8,7 @@
 #include <fstream> /*for reading in data from a given file*/
 #include <sstream> /*for converting string to integer in my initializeArray method*/
 #include <algorithm> /*used for getting a vector of unique values in uniquePlaces method*/ 
+#include <math.h> /*log10 and floor for determing number of digits in a number*/
  
 struct vertex_info
 {
@@ -18,12 +19,14 @@ struct vertex_info
 };
 
 void printInfo(vector<vertex_info> uniqueNodes, int numVertices);
-void initializeArray(/*Graph<string> &g, */vector <vertex_info> &v, string fileName);
+void initializeArray(vector <vertex_info> &v, string fileName);
 vector <vertex_info> uniquePlaces(vector <vertex_info> v);
 void fillVertices(Graph <string> &g, vector<vertex_info> place);
 void fillGraph(Graph<string> &g, vector <vertex_info> uniqueVals, vector <vertex_info> v);
 void fillEdges(Graph <string> &g, vector<vertex_info> v);
 void dijkstra (Graph<string> &g,vector <vertex_info> uniqueVals, string start_vertex);
+void markAdjacent(Graph<string> g, vector<vertex_info> &uniqueVals, string current,
+		  vector<int> marked_indexes);
 void printArray(vector<vertex_info> uniqueVals);
 
 int main(int argc, char *argv[])
@@ -57,10 +60,12 @@ int main(int argc, char *argv[])
 
 	//instantiate our graph and queue objects
 	Graph<string> myGraph(numVertices);
-	
+
+	//call to fill the vertices/edges of the graph	
 	fillGraph(myGraph, uniqueVals, v);
+
+	//call to perform Dijkstra's Algorithm given the starting vertex
 	dijkstra(myGraph, uniqueVals, startingVertex);	
-//	Queue<string> myQ(numVertices);
 	return 0;
 }
 
@@ -181,8 +186,8 @@ vector <vertex_info> uniquePlaces(vector <vertex_info> v)
 		//initialize all our marks to false
 		node.mark = false;
 
-		//initialize all our distances to -1 so we know we haven't 
-		//visited it yet.
+		//initialize all our distances to -1, since we haven't 
+		//traveled anywhere yet.
 		node.distance = -1;
 		places.push_back(node);
 	}
@@ -247,43 +252,122 @@ void dijkstra (Graph <string> &g, vector <vertex_info> uniqueVals, string start_
 	//mark the first vertex
 	g.MarkVertex(start_vertex);	
 
+	//find the location of the start_vertex in vector uniqueVals
+	int index = findVertex(uniqueVals, start_vertex);	
+
 	//find the first vertex (selected by user) in our vector of structs
-	//and instantiate the previous vector to "N/A" and the distance to 0
-	for(int i = 0; i < uniqueVals.size(); i++)
-	{
-		if (uniqueVals.at(i).destination.compare(start_vertex) == 0)
-		{
-			uniqueVals.at(i).distance = 0;
-			uniqueVals.at(i).origin = "N/A";
-		
-			//add the index of the start_vertex in the uniqueVals 
-			//vector to our marked_indexes array to know that this
-			//value was marked first.
-			marked_indexes.push_back(i);
-			break;
-		}		
-	}
+	//and instantiate the previous vector to "N/A"
+	uniqueVals.at(index).origin = "N/A";
+	uniqueVals.at(index).distance = 0;		
+	//add the index of the start_vertex in the uniqueVals 
+	//vector to our marked_indexes array to know that this
+	//value was marked first.
+	marked_indexes.push_back(index);
+	
+	//mark the adjacent vertex for our starting vertex
+	markAdjacent(g, uniqueVals, start_vertex, marked_indexes);
 	printArray(uniqueVals);	
+}
+
+//method to mark the adjacent matrix and update the uniqueVals
+void markAdjacent(Graph<string> g, vector<vertex_info> &uniqueVals, string current, 
+		  vector <int> marked_indexes)
+{
+	Queue <string> q(uniqueVals.size());
 	//fill queue with adjacent vertices to the start_vertex
-	g.GetToVertices(start_vertex, q);
+	g.GetToVertices(current, q);
 	while(!q.isEmpty())
 	{
 		string front = q.getFront();
+		cout << "front: " << front << endl;		
 		
+		int weight_graph = g.WeightIs(current, front);
+		
+		//get the index of "front" in uniqueVals and its weight in uniqueVals
+		int front_index = findVertex(uniqueVals, front);
+		int weight_vector = uniqueVals.at(front_index).distance;
+	
+		//get the index of the last marked index and its weight in uniqueVals
+		int last_marked_index = marked_indexes.at(marked_indexes.size()-1);
+		int weight_marked = uniqueVals.at(last_marked_index).distance;
+
+		//add the weight_graph value to the distance of the last marked vertex
+		int sum = weight_graph + weight_marked;
+
 		//if the adjacent vertex is currently unmarked and its distance
 		//value in local vector is greater than the sum of the weight
-		//value plus the distance of the last marked vertex	
+		//value plus the distance of the last marked vertex or the distance is 
+		//-1, meaning it hasn't been visited...	
+		// 0 = false, 1 = true
+		cout << "front is Marked? " << g.IsMarked(front) << endl;	
+		cout << "weight_vector: " << weight_vector << endl;
+		cout << "sum: " << sum << endl;
+		if (!g.IsMarked(front) && ((weight_vector > sum) || weight_vector == -1))
+		{
+			//reset distance value of adjacent vertex to the smaller sum and 
+			//store current vertex as the previous vertex of the adjacent vertex
+			uniqueVals.at(front_index).distance = sum;
+			uniqueVals.at(front_index).origin = current;			
+			uniqueVals.at(front_index).mark = true;
+			
+			//push the current front_index to our marked indexes vector
+			marked_indexes.push_back(front_index);
+			break;
+		}
+		q.dequeue();
 	} 
+	q.makeEmpty();
+}
+
+//method to help with the proper printing output for strings
+int s_numSpaces(string vertex)
+{
+	int numLetters = vertex.size();
+	return 30 - numLetters;
+}
+
+//method to help with the proper printing output for integers
+int n_numSpaces(int value)
+{
+	//if value == 0; then log10 is undefined, which is why we have a special case for it
+	double numDigits = (value == 0 ? 1 : floor(log10(value)) + 1.0);	
+	if (value == -1) numDigits = 2;	
+	return 30 - numDigits;	
+}
+
+void printSpaces(int numSpaces)
+{
+	for (int i = 0; i < numSpaces; i++)
+		cout << " ";
 }
 
 void printArray(vector<vertex_info> uniqueVals)
-{
-	cout << "------------------------------------------------------------------" << endl;
-	cout << "	   Vertex		 Distance		   Previous" << endl;
+{	
+	cout << "\t\t--------------------------------------------------------------------------" << endl;
+		
+	//get the proper spacing for printing:
+	int numSpaces;
+	printSpaces(24);
+	cout << "Vertex";
+	printSpaces(22);
+	cout << "Distance";
+	printSpaces(22);
+	cout << "Previous\n" << endl;
+
 	for (int i = 0; i < uniqueVals.size(); i++)
 	{
-		cout << uniqueVals.at(i).destination << "\t\t" << uniqueVals.at(i).distance << "\t\t" << 
-		uniqueVals.at(i).origin << endl;	
+		numSpaces = s_numSpaces(uniqueVals.at(i).destination);
+		printSpaces(numSpaces);
+		cout << uniqueVals.at(i).destination;
+
+		numSpaces = n_numSpaces(uniqueVals.at(i).distance);
+		printSpaces(numSpaces);
+		cout << uniqueVals.at(i).distance;
+
+		numSpaces = s_numSpaces(uniqueVals.at(i).origin);
+		printSpaces(numSpaces);
+		cout << uniqueVals.at(i).origin;
+		cout << endl;	
 	}
-	cout << "------------------------------------------------------------------" << endl;
+	cout << "\t\t--------------------------------------------------------------------------" << endl;
 }
