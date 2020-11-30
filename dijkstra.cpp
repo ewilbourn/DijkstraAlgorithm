@@ -24,9 +24,10 @@ void initializeArray(vector <vertex_info> &v, string fileName);
 vector <vertex_info> uniquePlaces(vector <vertex_info> v);
 void fillVertices(Graph <string> &g, vector<vertex_info> place);
 void fillGraph(Graph<string> &g, vector <vertex_info> uniqueVals, vector <vertex_info> v);
+int findVertex(vector<vertex_info> uniqueVals, string vertex);
 void fillEdges(Graph <string> &g, vector<vertex_info> v);
 void dijkstra (Graph<string> &g,vector <vertex_info> uniqueVals, string start_vertex);
-void adjacentDistUpdate(Graph<string> g, vector<vertex_info> &uniqueVals, string current,
+int adjacentDistUpdate(Graph<string> g, vector<vertex_info> &uniqueVals, string current,
 		  vector<int> &marked_indexes);
 void markVertex(Graph<string> &g, vector<vertex_info>&uniqueVals, vector<int> &markedIndexes);
 void printArray(vector<vertex_info> uniqueVals);
@@ -63,6 +64,15 @@ int main(int argc, char *argv[])
 	cout << "\n\t\tPlease input your starting vertex: ";
 	cin >> startingVertex;
 
+	int index = findVertex(uniqueVals, startingVertex);
+	while (index == -1)
+	{
+		cout << "\t\tStarting location does not exist..." << endl;
+		cout << "\t\tPlease input your starting vertex: ";
+		cin >> startingVertex;
+		index = findVertex(uniqueVals, startingVertex);
+	}
+
 	//instantiate our graph and queue objects
 	Graph<string> myGraph(numVertices);
 
@@ -78,16 +88,16 @@ int main(int argc, char *argv[])
 //method to print the "Dijksta's Algorithm" title and all the vertices given in the input file
 void printInfo(vector<vertex_info> uniqueNodes, int numVertices)
 {
-	cout << "\t\t^^^^^^^^^^^^^^^^    DIJKSTRA'S ALGORITHM    ^^^^^^^^^^^^^^^^\n" << endl;
+	cout << "\t\t^^^^^^^^^^^^^^^^^^^^^^^^^^    DIJKSTRA'S ALGORITHM    ^^^^^^^^^^^^^^^^^^^^^^^^^^\n" << endl;
         cout << "\t\tA Weighted Graph Has Been Built For These " << numVertices << "  Cities :\n" << endl;
 
-	//for(int i = 0; (i+2) < uniqueNodes.size(); i+=3)
 	for (int i = 0; i < uniqueNodes.size(); i++)
 	{
 		int numSpaces = s_numSpaces(uniqueNodes.at(i).destination);
 		printSpaces(numSpaces);
 		cout << uniqueNodes.at(i).destination;
-		
+	
+		//if the current i value is a multiple of 3, then print a new line	
 		if ((i+1)%3 == 0)
 			cout << endl;
 	}
@@ -263,33 +273,40 @@ void dijkstra (Graph <string> &g, vector <vertex_info> uniqueVals, string start_
 	//value was marked first.
 	marked_indexes.push_back(index);
 	
-	//mark the adjacent vertex for our starting vertex
-	adjacentDistUpdate(g, uniqueVals, start_vertex, marked_indexes);
-	markVertex(g, uniqueVals, marked_indexes);		
+ 
 
-	//iterate through all our uniqueVals in the vector
-	for (int i = 0; i < uniqueVals.size(); i++)
+	//mark the adjacent vertex for our starting vertex and return the number of adjacent vertices
+	int numAdjacentVertices = adjacentDistUpdate(g, uniqueVals, start_vertex, marked_indexes);
+
+	if(numAdjacentVertices != 0)
 	{
-		//our current index is the index of the most recently marked vertex
-		int current_index = marked_indexes.at(marked_indexes.size()-1);
-		//cout << "current_index: " << current_index << endl;
-		string current = uniqueVals.at(current_index).destination;
-		//cout << "current: " << current << endl;
-		adjacentDistUpdate(g, uniqueVals, current, marked_indexes);	
-		markVertex(g, uniqueVals, marked_indexes);		
+		//iterate through all our uniqueVals in the vector
+		for (int i = 0; i < uniqueVals.size(); i++)
+		{
+			//cout << "marked_indexes.size(): " << marked_indexes.size() << "\n\n" << endl;
+			//our current index is the index of the most recently marked vertex
+			int current_index = marked_indexes.at(marked_indexes.size()-1);
+			//cout << "current_index: " << current_index << endl;
+			string current = uniqueVals.at(current_index).destination;
+			//cout << "current: " << current << endl;
+		//	cout << endl;
+			adjacentDistUpdate(g, uniqueVals, current, marked_indexes);	
+			markVertex(g, uniqueVals, marked_indexes);		
+		}
 	}
 	printArray(uniqueVals);	
 }
 
-//method to update the distances and origins of the current vertex's adjacent vertices
-void adjacentDistUpdate(Graph<string> g, vector<vertex_info> &uniqueVals, string current, 
+//method to update the distances and origins of the current vertex's adjacent vertices; returns the number of adjacent vertices
+int adjacentDistUpdate(Graph<string> g, vector<vertex_info> &uniqueVals, string current, 
 		  vector <int> &marked_indexes)
 {
-	//cout << "in adjacentDistUpdate" << endl;
 
+	int numAdjacentVertices = 0;
 	Queue <string> q(uniqueVals.size());
 	//fill queue with adjacent vertices to the start_vertex
 	g.GetToVertices(current, q);
+
 	//cout << "current: " << current << endl;
 	while(!q.isEmpty())
 	{
@@ -297,7 +314,7 @@ void adjacentDistUpdate(Graph<string> g, vector<vertex_info> &uniqueVals, string
 		//cout << "front: " << front << endl;		
 		
 		int weight_graph = g.WeightIs(current, front);
-		
+		//cout << "weight_graph: " << weight_graph << endl;
 		//get the index of "front" in uniqueVals and its weight in uniqueVals
 		int front_index = findVertex(uniqueVals, front);
 		int weight_vector = uniqueVals.at(front_index).distance;
@@ -305,6 +322,8 @@ void adjacentDistUpdate(Graph<string> g, vector<vertex_info> &uniqueVals, string
 		//get the index of the last marked index and its weight in uniqueVals
 		int last_marked_index = marked_indexes.at(marked_indexes.size()-1);
 		int weight_marked = uniqueVals.at(last_marked_index).distance;
+		//cout << "marked vertex: " << uniqueVals.at(last_marked_index).destination;
+		//cout << "weight_marked: " << weight_marked << endl;
 
 		//add the weight_graph value to the distance of the last marked vertex
 		int sum = weight_graph + weight_marked;
@@ -323,8 +342,11 @@ void adjacentDistUpdate(Graph<string> g, vector<vertex_info> &uniqueVals, string
 			uniqueVals.at(front_index).origin = current;			
 		}
 		q.dequeue();
+		numAdjacentVertices += 1;
 	} 
 	q.makeEmpty();
+
+	return numAdjacentVertices;
 }
 
 //method to merk the vertex with the smallest non-zero/non-negative distance
