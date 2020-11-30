@@ -9,6 +9,7 @@
 #include <sstream> /*for converting string to integer in my initializeArray method*/
 #include <algorithm> /*used for getting a vector of unique values in uniquePlaces method*/ 
 #include <math.h> /*log10 and floor for determing number of digits in a number*/
+#include <climits> /*for INT_MAX*/
  
 struct vertex_info
 {
@@ -180,14 +181,14 @@ vector <vertex_info> uniquePlaces(vector <vertex_info> v)
 	{
 		vertex_info node;
 		node.destination = s.at(i);
-		node.origin = "";
+		node.origin = "N/A";
 
 		//initialize all our marks to false
 		node.mark = false;
 
-		//initialize all our distances to -1, since we haven't 
+		//initialize all our distances to INT_MAX, since we haven't 
 		//traveled anywhere yet.
-		node.distance = -1;
+		node.distance = INT_MAX;
 		places.push_back(node);
 	}
 
@@ -314,7 +315,7 @@ void adjacentDistUpdate(Graph<string> g, vector<vertex_info> &uniqueVals, string
 		//cout << "front is Marked? 0 = false, 1 = true" << g.IsMarked(front) << endl;	
 		//cout << "weight_vector: " << weight_vector << endl;
 		//cout << "sum: " << sum << endl;
-		if (!g.IsMarked(front) && ((weight_vector > sum) || weight_vector == -1))
+		if (!g.IsMarked(front) && ((weight_vector > sum) || weight_vector == INT_MAX))
 		{
 			//reset distance value of adjacent vertex to the smaller sum and 
 			//store current vertex as the previous vertex of the adjacent vertex
@@ -337,7 +338,7 @@ void markVertex(Graph<string> &g, vector<vertex_info>&uniqueVals, vector<int> &m
 	
 	for (int i = 0; i < uniqueVals.size(); i++)
 	{
-		if(!g.IsMarked(uniqueVals.at(i).destination) && uniqueVals.at(i).distance != -1 && uniqueVals.at(i).distance != 0)
+		if(!g.IsMarked(uniqueVals.at(i).destination) && uniqueVals.at(i).distance != INT_MAX && uniqueVals.at(i).distance != 0)
 		{
 			g.MarkVertex(uniqueVals.at(i).destination);
 			uniqueVals.at(i).mark = true;
@@ -392,10 +393,17 @@ void printArray(vector<vertex_info> uniqueVals)
 		printSpaces(numSpaces);
 		cout << uniqueVals.at(i).destination;
 
-		numSpaces = n_numSpaces(uniqueVals.at(i).distance);
-		printSpaces(numSpaces);
-		cout << uniqueVals.at(i).distance;
-
+		if(uniqueVals.at(i).distance == INT_MAX)
+		{
+			printSpaces(19);
+			cout << "Not On Path";
+		}
+		else
+		{
+			numSpaces = n_numSpaces(uniqueVals.at(i).distance);
+			printSpaces(numSpaces);
+			cout << uniqueVals.at(i).distance;
+		}
 		numSpaces = s_numSpaces(uniqueVals.at(i).origin);
 		printSpaces(numSpaces);
 		cout << uniqueVals.at(i).origin;
