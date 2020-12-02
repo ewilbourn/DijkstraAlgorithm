@@ -1,0 +1,205 @@
+Emily Wilbourn
+CSC 245
+Project 4 - Dijkstra's Algorithm
+
+Problem Description:
+-Read in a file of input with each line having the format: Origin;Destination;Trip-Length
+-Given a specific vertex (provided by the user), determine the shortest path throughout 
+the graph
+
+
+Specification:
+-We will be using the graph class (found in graph.cpp) to implement Dijkstra's Algorithm
+
+
+Client Algorithm:
+-Read in the text file given on the command line and add each origin/destination/distance
+as an edge on the graph
+-Take all the possible locations and create a vector of unique locations
+-Create a vector of structs, with our struct looking like the following:
+
+struct vertex_info
+{
+        string origin;
+        bool mark;
+        int distance;
+        string destination;
+};
+
+-For our vector of structs:
+	-Instantiate the destination of each struct to each unique location we stored 
+	earlier
+	-Leave the origin blank for each destination for now
+	-Instantiate the distance for each vertex to be -1 so that we know we haven't 
+	calculated a distance for it yet
+	-Instantiate the mark for each vertex to be false
+
+-Go through and find the first vertex (provided by user input), instantiate the 
+distance to 0 and mark it as visited (set mark to true), instantiate the origin as
+an empty string ("").
+
+-Then, get the adjacent vertices for the first vertex and store them in a queue using the
+GetToVertices method
+
+-For each adjacent vertex:
+	-determine the weight of the edge between the first vertex and the adjacent vertex
+	-if adjacent vertex is currently unmarked and its distance value in the table is 
+	greater than the sum of the weight value plus the distance of the last marked 
+	vertex, then replace it with the smaller sum
+
+-If the number of adjacent vertices for the starting vertex is not 0, then continue this
+process with all the other vertices until we've iterated through the entire local table
+of vertices. Else, go ahead and print the table of values.
+
+
+The Methods we're using from Graph class:
+-When building the graph:
+	-AddVertex -- with each unique location in the given file; this method fills up the private vertices array in the graph class
+	-AddEdge   -- with each origin/destination/distance listed in data file; this method fills up the private 2-dimensional edges array
+		      in the graph class.
+-When using Dijkstra's Algorithm:
+	-GetToVertices -- used to find adjacent vertices; this method fills up a queue of adjacent vertices
+	-WeightIs      -- used to get the weights of adjacent vertices; this method returns an integer
+	-IsMarked      -- used to determine if a vertex has been marked or not; this method returns a boolean
+	-MarkVertex    -- used to mark a vertex in the vertices array; this method turns the index of the value in the marks array that runs parallel
+			  to the vertices array true
+-Other public methods in the graph class:
+	-isEmpty       --returns a boolean telling us if the graph is empty or not; I didn't use this in my algorithm
+	-isFull	       --returns a boolean telling us if the graph is full or not; I didn't use this in my algorithm
+	-ClearMarks    --turns all the values in the marks array false; I didn't explicitly call this in my algorithm
+
+-Private method in graph class:
+	-IndexIs       --returns the index of a given vertex in the vertices private array
+
+Data Structures used to build the graph:
+-for building the initial graph, I fill up a vector of structs that has all the 
+origin/destination/distance pairings and use that information to create the edges for the 
+graph. For the vertices, I take the vector I created for edges and create a vector with all
+the unique vertices by adding all the origin/destination pairs to a vector of structs, 
+sorting it, and deleting all the duplicates. I then feed this vector into a method that adds all the vertices to the graph in the graph class.
+
+-The vector of unique vertices is what I use when implementing dijkstra's algorithm later, 
+and is what I print out at the end with the final distances/origins of each destination 
+vertex in the graph.
+
+-For getting the adjacent vertices for each vector, we use a queue, which is filled up with
+adjacent vertices by a call to the GetToVertices method in the graph class.
+
+-Overall, there's just a lot of vectors used in my implementation, as well as a graph object
+and a queue object.
+
+Sample Input/Output:
+
+	Input:
+
+	cow;pig;4
+	cow;giraffe;7
+	giraffe;rooster;2
+	rooster;flamingo;13
+	pig;monkey;5
+	monkey;flamingo;8
+	flamingo;monkey;8
+	monkey;cow;7
+
+	Output (starting with cow):
+	
+	Vertex		Distance	Previous
+	cow 		0		N/A
+	pig		4 		cow 	 
+	giraffe		7		cow
+	monkey		9		pig		//distance is 9 because it's the distance from cow to pig and then pig to monkey, which is 4+5=9
+	rooster		9		giraffe		//distance is 9 because it's the distance from cow to giraffe and then giraffe to rooster, which is 7+2=9
+	flamingo	17		monkey		//distance is 17 because it's the distance from cow to pig, then pig to monkey, then monkey to flamingo, which is 4+5+8 = 17
+
+
+Dijstra's Algorithm Explanation (from Dr. Digh's Project handout):
+
+**explanation from class:
+	1. Set up a series of arrays with vertex, mark, distance, and previous vertex. 
+	   Include the distances to adjacent vertices and record where we came from. 
+	(I personally decided to use a vector of structs that contained all these attributes)
+	
+	2. Get greedy! Find the smallest, non-marked distance, and repeat your process until
+	   all nodes are marked. Include any prior distances.
+
+**very thorough explanation from Project 4 handout
+	1. Determine how many vertices have been input. Assign this to some integer.
+
+	2. Declare and initialize a structure that can support each of the following 
+	components. You could use a series of four parallel arrays or a single array of 
+	structs.
+		• The strings representing the different vertices.
+		• The booleans to “mark” a vertex once the weight of a vertex has been chosen
+		 as the smallest among the current unmarked ones. All values in this array 
+		 should start out as false.
+		• The integers representing the total distance used in reaching this vertex.
+		  All values in this array should probably start out with a value like 
+		  INT_MAX so they will not be considered among the current smallest of those
+		  already initialized.
+		• The strings representing the previous vertex visited before reaching a 
+		  vertex.
+	3. Determine the index within your local container of vertices where the starting 
+	vertex is located. Mark it as visited and flush its distance to 0. Print out the data
+	corresponding to this index with “N/A” used as the previous vertex.
+
+	4. Determine the vertices which are adjacent to your current vertex using the 
+	GetToVertices operation in the graph class.
+
+	5. Now, for each vertex that is adjacent to your current vertex, determine the weight
+	value that exists between each one and your current vertex. If an adjacent vertex is
+	currently unmarked and its distance value in the table is greater than the sum of the
+	weight value plus the distance of the last marked vertex (your current vertex), reset
+	its distance value to this smaller sum. Store the name of the current vertex as the
+	previous vertex of each adjacent vertex.
+
+	6. Find the minimum distance value among all unmarked vertices, and set the vertex 
+	that corresponds to this minimum distance as your new current vertex. Mark this 
+	vertex.
+
+	7. Print out the data corresponding to your current marked vertex.
+
+	8. Repeat the previous four steps above until all of your vertices have been marked.
+
+
+**Emily's explanation of it:
+	1. Store all the unique vertices in some data structure (I chose a vector of structs) so that we 
+	can work with them when implementing Dijkstra's Algorithm. Instantiate the distance for each vertex to
+	be INT_MAX, which is the maximum allowable size for an integer in C++. That way, when searching for the 
+	vertex that is unmarked and has the current smallest distance in the vector, we don't have to do any 
+	weird cases if this value was anything other than INT_MAX, because it'll be the maximum distance value in 
+	the vector.
+
+	This is the struct I used:
+	struct vertex_info
+	{
+        	string origin; 		//represents the previously marked vertex
+        	bool mark;     		//represents if we've visited this vertex yet or not
+        	int distance;  		//represents the shortest, total distance from the starting vertex to here
+        	string destination;	//the actual vertex we are currently looking at
+	};
+
+
+	2. To start, go ahead and mark the starting vertex (chosen by the user) as having been visted and make the
+	distance traveled zero. Make the origin N/A, since this is the first vertex we are visiting.
+
+	3. From there, look at all the adjacent vertices to the starting vertex. An adjacent vertex is a vertex directly
+	connected to the current vertex we are looking at. Determine the total distance traveled from the starting vertex 
+	(which is also the current vertex) to each adjacent vertex, and update the distances to these values for each of 
+	our adjacent vertices.
+
+	4. From there, look through our vector and find the unmarked vertex in the vector that has the smallest, non-zero 
+	distance and go ahead and mark it. Once a vertex has been marked, go ahead and add the index of the newly marked 
+	vertex to a vector of integers, which holds the indexes of marked vertices, so that we can set the recently marked 
+	index as the new starting point for the second round of Dijkstra's algorithm.
+
+	5. Continue this process of updating distances of adjacent vertices, finding the unmarked vertex with the smallest 
+	distance, and setting this vertex as the new starting point until all vertices have been marked.
+
+	NOTE: When updating distances of adjacent vertices, there is something to keep in mind. If the current distance for 
+	a vertex is larger than the weight of that vertex (or the distance from that vertex, which is the adjacent vertex, to 
+	the current vertex) plus the distance of the last marked vertex (which is the current vertex we're looking at), then 
+	replace the larger distance with the smaller distance. The goal of Dijkstra's Algorithm is to find the shortest path
+	through the graph, so this is why we update the distances to have the smallest, non-zero distance.
+	
+	
+
