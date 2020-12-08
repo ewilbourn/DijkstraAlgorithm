@@ -1,0 +1,8 @@
+cow;pig;4
+cow;giraffe;7
+giraffe;rooster;2
+rooster;flamingo;13
+pig;monkey;5
+monkey;flamingo;8
+flamingo;monkey;8
+monkey;cow;7

@@ -1,0 +1,93 @@
+Script started on Sun 29 Nov 2020 10:03:48 PM EST
+]0;wilbourn_ee@cobra:~/csc245/Prog4/dijkstra-algorithm[?1034h[wilbourn_ee@cobra dijkstra-algorithm]$ exita.out ginfile2.dat[1Pc++ dijkstra.cpp exit[Kc++ dijkstra.cpp 
+]0;wilbourn_ee@cobra:~/csc245/Prog4/dijkstra-algorithm[wilbourn_ee@cobra dijkstra-algorithm]$ c++ dijkstra.cpp exit[Ka.out ginfile2.dat[1P.dat
+The file ginfile.dat does not exist.
+Please try again.
+]0;wilbourn_ee@cobra:~/csc245/Prog4/dijkstra-algorithm[wilbourn_ee@cobra dijkstra-algorithm]$ a.out ginfile.datc++ dijkstra.cpp a.out ginfile.dat2.dat
+		^^^^^^^^^^^^^^^^^^^^^^^^^^    DIJKSTRA'S ALGORITHM    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+		A Weighted Graph Has Been Built For These 7  Cities :
+
+                            V1                            V2                            V3
+                            V4                            V5                            V6
+                            V7
+		Please input your starting vertex: V1
+		--------------------------------------------------------------------------
+                        Vertex                      Distance                      Previous
+
+                            V1                             0                           N/A
+                            V4                             1                            V1
+                            V2                             2                            V1
+                            V3                             3                            V4
+                            V5                             3                            V4
+                            V7                             5                            V4
+                            V6                             6                            V7
+		--------------------------------------------------------------------------
+]0;wilbourn_ee@cobra:~/csc245/Prog4/dijkstra-algorithm[wilbourn_ee@cobra dijkstra-algorithm]$ a.out ginfile2.dat
+		^^^^^^^^^^^^^^^^^^^^^^^^^^    DIJKSTRA'S ALGORITHM    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+		A Weighted Graph Has Been Built For These 7  Cities :
+
+                            V1                            V2                            V3
+                            V4                            V5                            V6
+                            V7
+		Please input your starting vertex: V6
+		--------------------------------------------------------------------------
+                        Vertex                      Distance                      Previous
+
+                            V6                             0                           N/A
+                            V1                   Not On Path                           N/A
+                            V2                   Not On Path                           N/A
+                            V3                   Not On Path                           N/A
+                            V4                   Not On Path                           N/A
+                            V5                   Not On Path                           N/A
+                            V7                   Not On Path                           N/A
+		--------------------------------------------------------------------------
+]0;wilbourn_ee@cobra:~/csc245/Prog4/dijkstra-algorithm[wilbourn_ee@cobra dijkstra-algorithm]$ a.out ginfile2.dat
+		^^^^^^^^^^^^^^^^^^^^^^^^^^    DIJKSTRA'S ALGORITHM    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+		A Weighted Graph Has Been Built For These 7  Cities :
+
+                            V1                            V2                            V3
+                            V4                            V5                            V6
+                            V7
+		Please input your starting vertex: V7
+		--------------------------------------------------------------------------
+                        Vertex                      Distance                      Previous
+
+                            V7                             0                           N/A
+                            V6                             1                            V7
+                            V1                   Not On Path                           N/A
+                            V2                   Not On Path                           N/A
+                            V3                   Not On Path                           N/A
+                            V4                   Not On Path                           N/A
+                            V5                   Not On Path                           N/A
+		--------------------------------------------------------------------------
+]0;wilbourn_ee@cobra:~/csc245/Prog4/dijkstra-algorithm[wilbourn_ee@cobra dijkstra-algorithm]$ a.out ginfile2.dat
+		^^^^^^^^^^^^^^^^^^^^^^^^^^    DIJKSTRA'S ALGORITHM    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+		A Weighted Graph Has Been Built For These 7  Cities :
+
+                            V1                            V2                            V3
+                            V4                            V5                            V6
+                            V7
+		Please input your starting vertex: V4  v4
+		Starting location does not exist...
+		Please input your starting vertex: v9
+		Starting location does not exist...
+		Please input your starting vertex: V4
+		--------------------------------------------------------------------------
+                        Vertex                      Distance                      Previous
+
+                            V4                             0                           N/A
+                            V3                             2                            V4
+                            V5                             2                            V4
+                            V7                             4                            V4
+                            V6                             5                            V7
+                            V1                             6                            V3
+                            V2                             8                            V1
+		--------------------------------------------------------------------------
+]0;wilbourn_ee@cobra:~/csc245/Prog4/dijkstra-algorithm[wilbourn_ee@cobra dijkstra-algorithm]$ exit
+exit
+
+Script done on Sun 29 Nov 2020 10:04:35 PM EST

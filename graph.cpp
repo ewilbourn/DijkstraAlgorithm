@@ -137,8 +137,9 @@ int Graph<VertexType>::WeightIs(VertexType fromVertex,
 }
 
 template<class VertexType>
-void Graph<VertexType>::GetToVertices(VertexType vertex,
+void Graph<VertexType>::GetToVertices(VertexType vertex, 
      Queue<VertexType>& adjvertexQ) const
+
 {
     int fromIndex;
     int toIndex;

@@ -26,7 +26,7 @@ void fillVertices(Graph <string> &g, vector<vertex_info> place);
 void fillGraph(Graph<string> &g, vector <vertex_info> uniqueVals, vector <vertex_info> v);
 int findVertex(vector<vertex_info> uniqueVals, string vertex);
 void fillEdges(Graph <string> &g, vector<vertex_info> v);
-void dijkstra (Graph<string> &g,vector <vertex_info> uniqueVals, string start_vertex);
+void dijkstra (Graph<string> &g,vector <vertex_info> &uniqueVals, string start_vertex);
 int adjacentDistUpdate(Graph<string> g, vector<vertex_info> &uniqueVals, string current,
 		  vector<int> &marked_indexes);
 void markVertex(Graph<string> &g, vector<vertex_info>&uniqueVals, vector<int> &markedIndexes);
@@ -45,6 +45,14 @@ int main(int argc, char *argv[])
 	//Get the file name with the graph data from user input on command line
 	string fileName = argv[1];
 
+	//test to see if the fileName is a valid file
+ 	ifstream test(fileName);
+	if (!test.is_open())
+	{
+		cout << "The file " << fileName << " does not exist." << endl;
+		cout << "Please try again." << endl;
+		return -1;
+	}
 	//call method to initialize our array of vertex_info objects
 	initializeArray(v, fileName);	
 
@@ -81,11 +89,14 @@ int main(int argc, char *argv[])
 
 	//call to perform Dijkstra's Algorithm given the starting vertex
 	dijkstra(myGraph, uniqueVals, startingVertex);	
-
+	printArray(uniqueVals);	
 	return 0;
 }
 
 //method to print the "Dijksta's Algorithm" title and all the vertices given in the input file
+//precondition: vector of vertex_info structs with all the unique vertices in the file and the number of 
+//unique vertices in the file
+//postcondition: return nothing, but print out the title and all the unique vertices for the user
 void printInfo(vector<vertex_info> uniqueNodes, int numVertices)
 {
 	cout << "\t\t^^^^^^^^^^^^^^^^^^^^^^^^^^    DIJKSTRA'S ALGORITHM    ^^^^^^^^^^^^^^^^^^^^^^^^^^\n" << endl;
@@ -105,7 +116,7 @@ void printInfo(vector<vertex_info> uniqueNodes, int numVertices)
 
 //precondition: v is empty
 //postcondition: nothing is returned, but v is filled
-void initializeArray(/*Graph<string> &g, */vector <vertex_info> &v, string fileName)
+void initializeArray(vector <vertex_info> &v, string fileName)
 {
 	vector <string> words;
 	string line;
@@ -167,14 +178,7 @@ vector <vertex_info> uniquePlaces(vector <vertex_info> v)
 
 	//vector to hold all the unique vertices that we have
 	vector <string> s;
-
-	//sort vector of structs by the destination
-	sort(v.begin(), v.end(), [] (const vertex_info &left, const vertex_info &right)
-	{
-		return (left.destination < right.destination);
-	});
-
-	for (int i = 0; (i+1) < v.size(); i++)
+	for (int i = 0; i < v.size(); i++)
 	{
 		s.push_back(v.at(i).destination);
 		s.push_back(v.at(i).origin);
@@ -205,7 +209,9 @@ vector <vertex_info> uniquePlaces(vector <vertex_info> v)
 	return places;
 }
 //method to fill in our vertices for our graph
-//precondition: pass in the graph object     
+//precondition: pass in the graph object and the vector of vertex_info structs that has all the unique
+//nodes in the file
+//postcondition: return nothing, but all the vertices have been added to the graph
 void fillVertices(Graph <string> &g, vector<vertex_info> place)
 {
 	for (int i = 0; i < place.size(); i++)
@@ -215,6 +221,9 @@ void fillVertices(Graph <string> &g, vector<vertex_info> place)
 }     
 
 //method used to fill the edges matrix for our graph object
+//precondition: pass in the graph object and the vector of vertex_info structs that has all the 
+//origin/destination pairs from the file
+//postcondition: return nothing, but all the edges have been added to the graph
 void fillEdges(Graph <string> &g, vector<vertex_info> v)
 {
 	for (int i = 0; i < v.size(); i++)
@@ -223,7 +232,10 @@ void fillEdges(Graph <string> &g, vector<vertex_info> v)
 	}
 }
 
-//method to fill our graph  
+//method to fill our graph by calling the fillVertices and fillEdges methods
+//precondition: pass in the graph object, vector of unique vertices, and vector of all origin/destination
+//vertex pairs
+//postcondition: return nothing, but the graph is filled with vertices and edges
 void fillGraph(Graph<string> &g, vector<vertex_info> uniqueVals, vector <vertex_info> v)
 {
 	fillVertices(g, uniqueVals);
@@ -231,6 +243,8 @@ void fillGraph(Graph<string> &g, vector<vertex_info> uniqueVals, vector <vertex_
 }      
 
 //method to return the index of a given vertex we're looking for
+//precondition: pass in our vector of unique vertices and the vertex we're searching for
+//postcondition: return the position (an integer) for the vertex in the vector of unique vertices
 int findVertex(vector<vertex_info> uniqueVals, string vertex)
 {
 	//instantiate this to -1 so that if it isn't found, we'll return -1
@@ -246,7 +260,11 @@ int findVertex(vector<vertex_info> uniqueVals, string vertex)
 	return location;
 }
 
-void dijkstra (Graph <string> &g, vector <vertex_info> uniqueVals, string start_vertex)
+
+//method that actually implements Dijkstra's algorithm to find the shortest path through the graph
+//precondition: pass in our graph object, vector of unique vertives, and the vertex we're starting at
+//postcondition: return nothing, but our vector of unique vertices is completely full 
+void dijkstra (Graph <string> &g, vector <vertex_info> &uniqueVals, string start_vertex)
 {
 	Queue <string> q(uniqueVals.size());
 
@@ -268,13 +286,12 @@ void dijkstra (Graph <string> &g, vector <vertex_info> uniqueVals, string start_
 	//and instantiate the previous vector to "N/A"
 	uniqueVals.at(index).origin = "N/A";
 	uniqueVals.at(index).distance = 0;		
+	
 	//add the index of the start_vertex in the uniqueVals 
 	//vector to our marked_indexes array to know that this
 	//value was marked first.
 	marked_indexes.push_back(index);
 	
- 
-
 	//mark the adjacent vertex for our starting vertex and return the number of adjacent vertices
 	int numAdjacentVertices = adjacentDistUpdate(g, uniqueVals, start_vertex, marked_indexes);
 
@@ -283,38 +300,35 @@ void dijkstra (Graph <string> &g, vector <vertex_info> uniqueVals, string start_
 		//iterate through all our uniqueVals in the vector
 		for (int i = 0; i < uniqueVals.size(); i++)
 		{
-			//cout << "marked_indexes.size(): " << marked_indexes.size() << "\n\n" << endl;
 			//our current index is the index of the most recently marked vertex
 			int current_index = marked_indexes.at(marked_indexes.size()-1);
-			//cout << "current_index: " << current_index << endl;
 			string current = uniqueVals.at(current_index).destination;
-			//cout << "current: " << current << endl;
-		//	cout << endl;
 			adjacentDistUpdate(g, uniqueVals, current, marked_indexes);	
 			markVertex(g, uniqueVals, marked_indexes);		
 		}
 	}
-	printArray(uniqueVals);	
 }
 
 //method to update the distances and origins of the current vertex's adjacent vertices; returns the number of adjacent vertices
+//precondition: pass in our graph object, vector of unique vertices, the current vertex we're looking at,
+//and the vector of the indexes of previously marked vertices
+//postcondition: return the number of adjacent vertices to our current vertex and update the distances of 
+//the vertices in our vector of unique values
 int adjacentDistUpdate(Graph<string> g, vector<vertex_info> &uniqueVals, string current, 
 		  vector <int> &marked_indexes)
 {
-
 	int numAdjacentVertices = 0;
 	Queue <string> q(uniqueVals.size());
+
 	//fill queue with adjacent vertices to the start_vertex
 	g.GetToVertices(current, q);
 
-	//cout << "current: " << current << endl;
 	while(!q.isEmpty())
 	{
 		string front = q.getFront();
-		//cout << "front: " << front << endl;		
 		
 		int weight_graph = g.WeightIs(current, front);
-		//cout << "weight_graph: " << weight_graph << endl;
+		
 		//get the index of "front" in uniqueVals and its weight in uniqueVals
 		int front_index = findVertex(uniqueVals, front);
 		int weight_vector = uniqueVals.at(front_index).distance;
@@ -322,8 +336,6 @@ int adjacentDistUpdate(Graph<string> g, vector<vertex_info> &uniqueVals, string 
 		//get the index of the last marked index and its weight in uniqueVals
 		int last_marked_index = marked_indexes.at(marked_indexes.size()-1);
 		int weight_marked = uniqueVals.at(last_marked_index).distance;
-		//cout << "marked vertex: " << uniqueVals.at(last_marked_index).destination;
-		//cout << "weight_marked: " << weight_marked << endl;
 
 		//add the weight_graph value to the distance of the last marked vertex
 		int sum = weight_graph + weight_marked;
@@ -331,9 +343,6 @@ int adjacentDistUpdate(Graph<string> g, vector<vertex_info> &uniqueVals, string 
 		//if the adjacent vertex is currently unmarked and its distance
 		//value in local vector is greater than the sum of the weight
 		//value plus the distance of the last marked vertex or the distance is 
-		//cout << "front is Marked? 0 = false, 1 = true" << g.IsMarked(front) << endl;	
-		//cout << "weight_vector: " << weight_vector << endl;
-		//cout << "sum: " << sum << endl;
 		if (!g.IsMarked(front) && ((weight_vector > sum) || weight_vector == INT_MAX))
 		{
 			//reset distance value of adjacent vertex to the smaller sum and 
@@ -350,6 +359,9 @@ int adjacentDistUpdate(Graph<string> g, vector<vertex_info> &uniqueVals, string 
 }
 
 //method to merk the vertex with the smallest non-zero/non-negative distance
+//precondition: pass in our graph object, the vector of unique vertices, and the vector of indexes of 
+//previously marked vertices
+//postcondition: update our markedIndexes vector to have the index of the vertex we just marked
 void markVertex(Graph<string> &g, vector<vertex_info>&uniqueVals, vector<int> &markedIndexes)
 {
 	//sort vector of structs by the destination
@@ -370,6 +382,9 @@ void markVertex(Graph<string> &g, vector<vertex_info>&uniqueVals, vector<int> &m
 	}
 }
 //method to help with the proper printing output for strings
+//precondition: pass in the string we're looking at
+//postcondtion: return the number of spaces needed to be printed before the string so it
+//takes up a total of 30 characters
 int s_numSpaces(string vertex)
 {
 	int numLetters = vertex.size();
@@ -377,20 +392,28 @@ int s_numSpaces(string vertex)
 }
 
 //method to help with the proper printing output for integers
+//precondition: pass in the integer we're looking at
+//postcondtion: return the number of spaces needed to be printed before the integer so it
+//takes up a total of 30 characters
 int n_numSpaces(int value)
 {
 	//if value == 0; then log10 is undefined, which is why we have a special case for it
 	double numDigits = (value == 0 ? 1 : floor(log10(value)) + 1.0);	
-	if (value == -1) numDigits = 2;	
 	return 30 - numDigits;	
 }
 
+//method to print out a given number of spaces
+//precondition: pass in the number of spaces we want printed
+//postcondition: return nothing, but the spaces are printed
 void printSpaces(int numSpaces)
 {
 	for (int i = 0; i < numSpaces; i++)
 		cout << " ";
 }
 
+//method to print out our vector of unique vertices
+//precondition: pass in our vector of unique vertices
+//postcondition: return nothing, but a table is printed in order from least - greatest distance
 void printArray(vector<vertex_info> uniqueVals)
 {	
 	//sort vector of structs by the destination

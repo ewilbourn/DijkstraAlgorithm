@@ -112,56 +112,7 @@ Sample Input/Output:
 	flamingo	17		monkey		//distance is 17 because it's the distance from cow to pig, then pig to monkey, then monkey to flamingo, which is 4+5+8 = 17
 
 
-Dijstra's Algorithm Explanation (from Dr. Digh's Project handout):
-
-**explanation from class:
-	1. Set up a series of arrays with vertex, mark, distance, and previous vertex. 
-	   Include the distances to adjacent vertices and record where we came from. 
-	(I personally decided to use a vector of structs that contained all these attributes)
-	
-	2. Get greedy! Find the smallest, non-marked distance, and repeat your process until
-	   all nodes are marked. Include any prior distances.
-
-**very thorough explanation from Project 4 handout
-	1. Determine how many vertices have been input. Assign this to some integer.
-
-	2. Declare and initialize a structure that can support each of the following 
-	components. You could use a series of four parallel arrays or a single array of 
-	structs.
-		• The strings representing the different vertices.
-		• The booleans to “mark” a vertex once the weight of a vertex has been chosen
-		 as the smallest among the current unmarked ones. All values in this array 
-		 should start out as false.
-		• The integers representing the total distance used in reaching this vertex.
-		  All values in this array should probably start out with a value like 
-		  INT_MAX so they will not be considered among the current smallest of those
-		  already initialized.
-		• The strings representing the previous vertex visited before reaching a 
-		  vertex.
-	3. Determine the index within your local container of vertices where the starting 
-	vertex is located. Mark it as visited and flush its distance to 0. Print out the data
-	corresponding to this index with “N/A” used as the previous vertex.
-
-	4. Determine the vertices which are adjacent to your current vertex using the 
-	GetToVertices operation in the graph class.
-
-	5. Now, for each vertex that is adjacent to your current vertex, determine the weight
-	value that exists between each one and your current vertex. If an adjacent vertex is
-	currently unmarked and its distance value in the table is greater than the sum of the
-	weight value plus the distance of the last marked vertex (your current vertex), reset
-	its distance value to this smaller sum. Store the name of the current vertex as the
-	previous vertex of each adjacent vertex.
-
-	6. Find the minimum distance value among all unmarked vertices, and set the vertex 
-	that corresponds to this minimum distance as your new current vertex. Mark this 
-	vertex.
-
-	7. Print out the data corresponding to your current marked vertex.
-
-	8. Repeat the previous four steps above until all of your vertices have been marked.
-
-
-**Emily's explanation of it:
+Dijstra's Algorithm Explanation:
 	1. Store all the unique vertices in some data structure (I chose a vector of structs) so that we 
 	can work with them when implementing Dijkstra's Algorithm. Instantiate the distance for each vertex to
 	be INT_MAX, which is the maximum allowable size for an integer in C++. That way, when searching for the 
