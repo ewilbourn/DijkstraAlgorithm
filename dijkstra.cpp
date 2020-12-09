@@ -36,7 +36,7 @@ void printSpaces(int numSpaces);
 int s_numSpaces(string vertex);
 int n_numSpaces(int value);
 bool hasCycle(Graph<string> &g, vector <vertex_info> v);
-int depthfirstsearch(Graph<string>&g, stack<string>&s, vector <vertex_info> &v);
+int depthfirstsearch(Graph<string>&g, stack<string>s, vector <vertex_info> &v);
 
 int main(int argc, char *argv[])
 {
@@ -495,11 +495,52 @@ bool hasCycle(Graph<string> &g, vector <vertex_info> v)
 	
 	cout << "false = 0 and true = 1" << endl;
 	cout << "hasCycle: " << hasCycle << endl;	
+
+	cout << "*******out of hasCycle method****************" << endl;
+	if (hasCycle == 0)
+	{	
+		//make sure that all vertices were visited in our depthfirstsearch
+		//store the number of unvisited vertices in an integer "counter"
+		int counter;
+		do
+		{ 
+			//go ahead and empty our stack (since we passed by value for the function,
+			//the stack only has one element on it right now
+			s.pop();
+			//initialize the number of unvisited vertices to zero
+			counter = 0;
+			for (int i = 0; i < v.size(); i++)	
+			{
+				if(v.at(i).mark == false)
+				{
+					//go ahead and push the first value that isn't marked
+					//to our stack to be passed into depthfirstsearch
+					if (counter == 0)
+						s.push(v.at(i).destination);
+					counter += 1;
+				}
+			}
+			cout << "Counter: " << counter << endl;
 		
+			if (counter > 0)
+				hasCycle = depthfirstsearch(g, s, v);
+			
+		} while (counter > 0);
+	}
+
 	return (hasCycle > 0);	
 }
 
-int depthfirstsearch(Graph<string>&g, stack<string>&s, vector <vertex_info> &v)
+//method that returns an integer that denotes if we have a cycle or not - any value greater than 0
+//tells us that we have a cycle; anything that's 0 indicates that we don't have a cycle
+//
+//precondition: g = graph that we're passing in, s = the stack of strings, where we've already pushed
+//the first value into it, which is the starting position, v = the vector of vertex_info objects so that
+//we can mark vertices as we visit them
+//
+//postcondition: return an integer that tells us if there's a cycle found from the depth first search; 
+//0 = no cycle, anyting > 0 = has a cycle
+int depthfirstsearch(Graph<string>&g, stack<string>s, vector <vertex_info> &v)
 {
 	cout << "in depth first search" <<endl;
 	bool hasCycle = false;	
@@ -512,12 +553,10 @@ int depthfirstsearch(Graph<string>&g, stack<string>&s, vector <vertex_info> &v)
 	//create a vector with the adjacent vertices for a given vertex
 	vector <string> adj;	
 
-	//initialize this to a value so that it doesn't automatically exit the method
-	//because it doesn't meet the while loop conditions
-	int numAdjacent = 1;
+	//represents the number of adjacent vertices for a given vertex
+	int numAdjacent;
 
-	int size = 0;
-	while (s.size() != 0 and numAdjacent != 0)
+	do	
 	{
 		numAdjacent = 0;
 		//set the current vertex we're looking at to be the top of the stack
@@ -570,7 +609,7 @@ int depthfirstsearch(Graph<string>&g, stack<string>&s, vector <vertex_info> &v)
 				}			
 			}
 		}
-	}
+	} while (s.size() != 0 and numAdjacent != 0);
 
 	return hasCycle;	
 }
