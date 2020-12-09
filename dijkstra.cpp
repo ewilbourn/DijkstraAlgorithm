@@ -7,7 +7,7 @@
 #include <iostream> /*cout & cin*/
 #include <fstream> /*for reading in data from a given file*/
 #include <sstream> /*for converting string to integer in my initializeArray method*/
-#include <algorithm> /*used for getting a vector of unique values in uniquePlaces method*/ 
+#include <algorithm> /*used for getting a vector of unique values in uniquePlaces method and for deleting a specific value from our cycle vector*/ 
 #include <math.h> /*log10 and floor for determing number of digits in a number*/
 #include <climits> /*for INT_MAX*/
 #include <stack> /*for finding cycles in a graph*/ 
@@ -495,15 +495,19 @@ bool hasCycle(Graph<string> &g, vector <vertex_info> v)
 	
 	cout << "*******out of hasCycle method****************" << endl;
 	if (hasCycle == 0)
-	{	
+	{
+		 cout << "hasCycle == 0" << endl;	
 		//make sure that all vertices were visited in our depthfirstsearch
 		//store the number of unvisited vertices in an integer "counter"
 		int counter;
 		do
 		{ 
-			//go ahead and empty our stack (since we passed by value for the function,
-			//the stack only has one element on it right now
-			s.pop();
+			//clear out the marks from when we used Dijstra's Algorithm with this graph
+			//g.ClearMarks();
+
+			//empty the stack
+			while (!s.empty())
+				s.pop();
 			
 			//initialize the number of unvisited vertices to zero
 			counter = 0;
@@ -549,19 +553,17 @@ int depthfirstsearch(Graph<string>&g, stack<string>s, vector <vertex_info> &v, v
 	//getToVertices everytime we get to another vertex
 	Queue <string> q (v.size());
 	
-	//create a vector with the adjacent vertices for a given vertex
-	vector <string> adj;	
-
 	//represents the number of adjacent vertices for a given vertex
 	int numAdjacent;
 
 	do	
 	{
 		numAdjacent = 0;
-		adj.clear();
 
 		//set the current vertex we're looking at to be the top of the stack
 		string current = s.top();
+
+		cout << "current: " << current << " before we mark it." << endl;
 
 		//this is needed because if a current vertex has already been marked, but we're 
 		//going through this process again because of the recursive call, we don't want
@@ -573,9 +575,12 @@ int depthfirstsearch(Graph<string>&g, stack<string>s, vector <vertex_info> &v, v
 
 			//mark the vertex in the graph
 			g.MarkVertex(current);
+			
+			cout << "marking vertex: " << current << endl;
 			v.at(index).mark = true;
 			path.push_back(current);
 			s.pop();
+			//cout << "s.top(): " << s.top() << " after popping top." << endl;		
 
 			//fill queue with adjacent vertices to the start_vertex
 			g.GetToVertices(current, q);
@@ -583,37 +588,61 @@ int depthfirstsearch(Graph<string>&g, stack<string>s, vector <vertex_info> &v, v
 			while (!q.isEmpty())
 			{
 				string adjacent = q.getFront();
+				cout << "pushing adjacent: " << adjacent << endl;
 				if(!g.IsMarked(adjacent))
 				{
 					s.push(adjacent);
-					adj.push_back(adjacent);
 				}
 
 				else
 				{
+					cout << adjacent << " marks the end of a cycle." << endl;
 					hasCycle += 1;
 					return hasCycle;
 				}
 				numAdjacent += 1;
 				q.dequeue();
 			}
-			
-			if(hasCycle == 0 && numAdjacent != 0)
-			{
-				for (int i = 0; i < adj.size(); i++)
+			cout << "s.top(): " << s.top() << " after popping top and adding adjacent vertices." << endl;		
+	
+	//		if(hasCycle == 0 && numAdjacent != 0)
+	//		{
+			//	for (int i = 0; i < adj.size(); i++)
+				while(!s.empty())
 				{
-					int index = findVertex(v, adj.at(i));
-				
-					//if we haven't visited an adjacent vertex
+				//	cout << "current: " << current << " i: " << i << endl;
+					int index = findVertex(v, s.top());
+					
+					cout << "s.top(): " << s.top() << " in while loop." <<endl;
+				//	if we haven't visited an adjacent vertex
 					if (!g.IsMarked(v.at(index).destination))
 					{
+						cout << "current vertex: " << current << endl;
+						cout << v.at(index).destination << " isn't marked; call depthfirstsearch." << endl;
+						cout << endl;
+			
 						hasCycle += depthfirstsearch(g,s,v,path);
-					}			
+						//return depthfirstsearch(g,s,v,path);
+					}
+					else
+					{
+						path.erase(remove(path.begin(), path.end(), s.top()), path.end());
+						s.pop();			
+					}
 				}
-			}	
+	//		}	
 		}
+	//	else
+	//	{
+			//path.erase(remove(path.begin(), path.end(), s.top()), path.end());
+	//		s.pop();
+	//	}
+		
 	} while (s.size() != 0 and numAdjacent != 0);
 
+	cout << "s.size(): " << s.size() << endl;
+	
+	cout << "end of loop" << endl; 	
 	return hasCycle;	
 }
 
