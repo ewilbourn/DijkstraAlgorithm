@@ -10,7 +10,9 @@
 #include <algorithm> /*used for getting a vector of unique values in uniquePlaces method*/ 
 #include <math.h> /*log10 and floor for determing number of digits in a number*/
 #include <climits> /*for INT_MAX*/
- 
+#include <stack> /*for finding cycles in a graph*/ 
+
+
 struct vertex_info
 {
 	string origin;
@@ -27,13 +29,14 @@ void fillGraph(Graph<string> &g, vector <vertex_info> uniqueVals, vector <vertex
 int findVertex(vector<vertex_info> uniqueVals, string vertex);
 void fillEdges(Graph <string> &g, vector<vertex_info> v);
 void dijkstra (Graph<string> &g,vector <vertex_info> &uniqueVals, string start_vertex);
-int adjacentDistUpdate(Graph<string> g, vector<vertex_info> &uniqueVals, string current,
-		  vector<int> &marked_indexes);
+int adjacentDistUpdate(Graph<string> g, vector<vertex_info> &uniqueVals, string current, vector<int> &marked_indexes);
 void markVertex(Graph<string> &g, vector<vertex_info>&uniqueVals, vector<int> &markedIndexes);
 void printArray(vector<vertex_info> uniqueVals);
 void printSpaces(int numSpaces);
 int s_numSpaces(string vertex);
 int n_numSpaces(int value);
+bool hasCycle(Graph<string> &g, vector <vertex_info> v);
+bool depthfirstsearch(Graph<string>&g, stack<string>&s, vector <vertex_info> &v);
 
 int main(int argc, char *argv[])
 {
@@ -59,6 +62,10 @@ int main(int argc, char *argv[])
 	//Create vector that we will update with vertex_info structs as we apply
 	//Dijkstra's algorithm.
 	vector <vertex_info> uniqueVals = uniquePlaces(v);
+
+	//Create another vector, the same as uniqueVals, to be used in implementing
+	//cycle detection for a graph.
+	vector <vertex_info> cycleVals = uniquePlaces(v);
 
 	//Get the number of vertices in our graph; this is the size of our
 	//vector v because each object in v is a different vertex.
@@ -90,6 +97,11 @@ int main(int argc, char *argv[])
 	//call to perform Dijkstra's Algorithm given the starting vertex
 	dijkstra(myGraph, uniqueVals, startingVertex);	
 	printArray(uniqueVals);	
+
+	cout << "before hasCycle" << endl;
+	bool cycle = hasCycle(myGraph, cycleVals);
+	cout << "after hasCycle" << endl;
+	
 	return 0;
 }
 
@@ -323,6 +335,14 @@ int adjacentDistUpdate(Graph<string> g, vector<vertex_info> &uniqueVals, string 
 	//fill queue with adjacent vertices to the start_vertex
 	g.GetToVertices(current, q);
 
+//	cout << "current: " << current << endl;
+//	while (!q.isEmpty())
+//	{
+//		cout << q.getFront() << endl;
+//		q.dequeue();
+//	}
+
+	g.GetToVertices(current, q);
 	while(!q.isEmpty())
 	{
 		string front = q.getFront();
@@ -455,4 +475,97 @@ void printArray(vector<vertex_info> uniqueVals)
 		cout << endl;	
 	}
 	cout << "\t\t--------------------------------------------------------------------------" << endl;
+}
+
+//for depth first search, mark each adjacent vertex as you visit it
+//pop, output, mark, and push adjacent vertices
+//1. add first vertex to the stack; pop it, output it, and mark it (in graph class)
+//2. push the adjacent vertices to the stack; pop the top value, output it, mark it,
+//and don't repush the marked vertex
+//3. keep repeating until we find a vertex with no adjacent vertices, or until we've
+//reached our starting vertex
+bool hasCycle(Graph<string> &g, vector <vertex_info> v)
+{
+	//clear out the marks from when we used Dijstra's Algorithm with this graph
+	g.ClearMarks();
+
+	//instantiate a stack to store all the adjacent vertices of the current
+	//vertex we're looking at
+	stack <string> s;
+
+	string start = v.at(0).destination;
+	s.push(start);
+
+	bool hasCycle = depthfirstsearch(g, s, v);
+	
+	cout << "false = 0 and true = 1" << endl;
+	cout << "hasCycle: " << hasCycle << endl;	
+	return hasCycle;	
+}
+
+bool depthfirstsearch(Graph<string>&g, stack<string>&s, vector <vertex_info> &v)
+{
+	cout << "in depth first search" <<endl;
+	bool hasCycle = false;	
+
+	//create a queue that will be filled with adjacent vertices as we call 
+	//getToVertices everytime we get to another vertex
+	Queue <string> q (v.size());
+	
+	//create a vector with the adjacent vertices for a given vertex
+	vector <string> adj;	
+
+	//initialize this to a value so that it doesn't automatically exit the method
+	//because it doesn't meet the while loop conditions
+	int numAdjacent = 1;
+
+	int size = 0;
+	while (s.size() != 0 and numAdjacent != 0)
+	{
+		numAdjacent = 0;
+		//set the current vertex we're looking at to be the top of the stack
+		string current = s.top();
+
+		//find index of vertex in our vector of <vertex_info> structs
+		int index = findVertex(v, current);
+
+		//mark the vertex in the graph
+		g.MarkVertex(current);
+		v.at(index).mark = true;
+		cout << "current: " << current << endl;
+		s.pop();
+
+		//fill queue with adjacent vertices to the start_vertex
+		g.GetToVertices(current, q);
+
+		while (!q.isEmpty())
+		{
+			string adjacent = q.getFront();
+			
+			if(!g.IsMarked(adjacent))
+			{
+				s.push(adjacent);
+				adj.push_back(adjacent);
+			}
+
+			else
+			{
+				hasCycle = true;
+			}
+			numAdjacent += 1;
+			q.dequeue();
+		}
+
+		for (int i = 0; i < adj.size(); i++)
+		{
+			int index = findVertex(v, adj.at(i));
+			
+			//if we haven't visited an adjacent vertex
+			if (!g.IsMarked(v.at(index).destination))
+			{
+				depthfirstsearch(g,s,v);
+			}			
+		}
+	}
+	return hasCycle;	
 }
