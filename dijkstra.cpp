@@ -36,8 +36,8 @@ void printSpaces(int numSpaces);
 int s_numSpaces(string vertex);
 int n_numSpaces(int value);
 bool hasCycle(Graph<string> &g, vector <vertex_info> v);
-int depthfirstsearch(Graph<string>&g, stack<string>s, vector <vertex_info> &v);
-
+int depthfirstsearch(Graph<string>&g, stack<string>s, vector <vertex_info> &v, vector <string> &path);
+void printCycle(vector <string> path);
 int main(int argc, char *argv[])
 {
 	//Instantiate a vector of vertex_info objects.
@@ -307,14 +307,11 @@ void dijkstra (Graph <string> &g, vector <vertex_info> &uniqueVals, string start
 	//mark the adjacent vertex for our starting vertex and return the number of adjacent vertices
 	int numAdjacentVertices = adjacentDistUpdate(g, uniqueVals, start_vertex, marked_indexes);
 
-	cout << "got through the first vertex" << endl;
 	if(numAdjacentVertices != 0)
 	{
-		cout << "numAdjacentVertices != 0" << endl;
 		//iterate through all our uniqueVals in the vector
 		for (int i = 0; i < uniqueVals.size(); i++)
 		{
-			cout << "i: " << i << endl;
 			//our current index is the index of the most recently marked vertex
 			int current_index = marked_indexes.at(marked_indexes.size()-1);
 			string current = uniqueVals.at(current_index).destination;
@@ -489,13 +486,13 @@ bool hasCycle(Graph<string> &g, vector <vertex_info> v)
 
 	string start = v.at(0).destination;
 	s.push(start);
+
+	//vector of strings to hold all the vertices that make up the path of a cycle
+	vector <string> path;
 	
 	//if hasCycle is greater than 0, then we have a cycle in our graph
-	int hasCycle = depthfirstsearch(g, s, v);
+	int hasCycle = depthfirstsearch(g, s, v, path);
 	
-	cout << "false = 0 and true = 1" << endl;
-	cout << "hasCycle: " << hasCycle << endl;	
-
 	cout << "*******out of hasCycle method****************" << endl;
 	if (hasCycle == 0)
 	{	
@@ -507,6 +504,7 @@ bool hasCycle(Graph<string> &g, vector <vertex_info> v)
 			//go ahead and empty our stack (since we passed by value for the function,
 			//the stack only has one element on it right now
 			s.pop();
+			
 			//initialize the number of unvisited vertices to zero
 			counter = 0;
 			for (int i = 0; i < v.size(); i++)	
@@ -520,14 +518,16 @@ bool hasCycle(Graph<string> &g, vector <vertex_info> v)
 					counter += 1;
 				}
 			}
-			cout << "Counter: " << counter << endl;
-		
 			if (counter > 0)
-				hasCycle = depthfirstsearch(g, s, v);
-			
+			{
+				//clear our vector of strings for the path for a cycle too
+				path.clear();			
+				hasCycle = depthfirstsearch(g, s, v, path);
+			}
 		} while (counter > 0);
 	}
-
+	if (hasCycle > 0)
+		printCycle(path);
 	return (hasCycle > 0);	
 }
 
@@ -536,15 +536,14 @@ bool hasCycle(Graph<string> &g, vector <vertex_info> v)
 //
 //precondition: g = graph that we're passing in, s = the stack of strings, where we've already pushed
 //the first value into it, which is the starting position, v = the vector of vertex_info objects so that
-//we can mark vertices as we visit them
+//we can mark vertices as we visit them, path = the vector of strings that will be filled with vertices on 
+//the path to our cycle
 //
 //postcondition: return an integer that tells us if there's a cycle found from the depth first search; 
 //0 = no cycle, anyting > 0 = has a cycle
-int depthfirstsearch(Graph<string>&g, stack<string>s, vector <vertex_info> &v)
+int depthfirstsearch(Graph<string>&g, stack<string>s, vector <vertex_info> &v, vector <string> &path)
 {
-	cout << "in depth first search" <<endl;
 	int hasCycle = 0;	
-	cout << "hasCycle: " << hasCycle << endl;	
 
 	//create a queue that will be filled with adjacent vertices as we call 
 	//getToVertices everytime we get to another vertex
@@ -564,6 +563,9 @@ int depthfirstsearch(Graph<string>&g, stack<string>s, vector <vertex_info> &v)
 		//set the current vertex we're looking at to be the top of the stack
 		string current = s.top();
 
+		//this is needed because if a current vertex has already been marked, but we're 
+		//going through this process again because of the recursive call, we don't want
+		//it to accidentally tell us there's a cycle when there isn't
 		if(!g.IsMarked(current))
 		{
 			//find index of vertex in our vector of <vertex_info> structs
@@ -572,20 +574,15 @@ int depthfirstsearch(Graph<string>&g, stack<string>s, vector <vertex_info> &v)
 			//mark the vertex in the graph
 			g.MarkVertex(current);
 			v.at(index).mark = true;
-			cout << "current: " << current << endl;
-			cout << endl;
+			path.push_back(current);
 			s.pop();
 
 			//fill queue with adjacent vertices to the start_vertex
 			g.GetToVertices(current, q);
 
-		//	cout << "false = 0 and true = 1" << endl;
-		//	cout << "q.isEmpty(): " << hasCycle << endl;	
 			while (!q.isEmpty())
 			{
-				cout << "inside the !q.isEmpty() method" << endl;
 				string adjacent = q.getFront();
-				cout << "adjacent: " << adjacent << endl;
 				if(!g.IsMarked(adjacent))
 				{
 					s.push(adjacent);
@@ -595,8 +592,6 @@ int depthfirstsearch(Graph<string>&g, stack<string>s, vector <vertex_info> &v)
 				else
 				{
 					hasCycle += 1;
-					cout << hasCycle << endl;
-					cout << "we found a cycle." << endl;
 					return hasCycle;
 				}
 				numAdjacent += 1;
@@ -605,7 +600,6 @@ int depthfirstsearch(Graph<string>&g, stack<string>s, vector <vertex_info> &v)
 			
 			if(hasCycle == 0 && numAdjacent != 0)
 			{
-				cout << "inside hasCycle  == 0 and numAdjacent != 0" << endl;
 				for (int i = 0; i < adj.size(); i++)
 				{
 					int index = findVertex(v, adj.at(i));
@@ -613,9 +607,7 @@ int depthfirstsearch(Graph<string>&g, stack<string>s, vector <vertex_info> &v)
 					//if we haven't visited an adjacent vertex
 					if (!g.IsMarked(v.at(index).destination))
 					{
-						cout << "v.at(index).destination is not marked" << endl;
-						cout << "v.at(index).destination: " << v.at(index).destination <<endl;
-						hasCycle += depthfirstsearch(g,s,v);
+						hasCycle += depthfirstsearch(g,s,v,path);
 					}			
 				}
 			}	
@@ -623,4 +615,18 @@ int depthfirstsearch(Graph<string>&g, stack<string>s, vector <vertex_info> &v)
 	} while (s.size() != 0 and numAdjacent != 0);
 
 	return hasCycle;	
+}
+
+//method to print out the cycle of a graph
+//precondition: pass in the vector of strings that make up the path of a cycle
+//postcondition: return nothing, but the path is printed
+void printCycle(vector <string> path)
+{
+	cout << "The Cycle is: " << endl;
+	cout << "Vertex" << " To" << endl;
+	for (int i = 0; (i+1) < path.size(); i++)
+	{
+		cout << path.at(i) << "->" << path.at(i+1) << endl; 
+	}
+	cout << path.at(path.size()-1) << "->" << path.at(0) << endl;
 }
