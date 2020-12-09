@@ -543,7 +543,7 @@ bool hasCycle(Graph<string> &g, vector <vertex_info> v)
 int depthfirstsearch(Graph<string>&g, stack<string>s, vector <vertex_info> &v)
 {
 	cout << "in depth first search" <<endl;
-	bool hasCycle = false;	
+	int hasCycle = 0;	
 	cout << "hasCycle: " << hasCycle << endl;	
 
 	//create a queue that will be filled with adjacent vertices as we call 
@@ -559,55 +559,66 @@ int depthfirstsearch(Graph<string>&g, stack<string>s, vector <vertex_info> &v)
 	do	
 	{
 		numAdjacent = 0;
+		adj.clear();
+
 		//set the current vertex we're looking at to be the top of the stack
 		string current = s.top();
 
-		//find index of vertex in our vector of <vertex_info> structs
-		int index = findVertex(v, current);
-
-		//mark the vertex in the graph
-		g.MarkVertex(current);
-		v.at(index).mark = true;
-		cout << "current: " << current << endl;
-		cout << endl;
-		s.pop();
-
-		//fill queue with adjacent vertices to the start_vertex
-		g.GetToVertices(current, q);
-
-		while (!q.isEmpty())
+		if(!g.IsMarked(current))
 		{
-			string adjacent = q.getFront();
-			
-			if(!g.IsMarked(adjacent))
-			{
-				s.push(adjacent);
-				adj.push_back(adjacent);
-			}
+			//find index of vertex in our vector of <vertex_info> structs
+			int index = findVertex(v, current);
 
-			else
+			//mark the vertex in the graph
+			g.MarkVertex(current);
+			v.at(index).mark = true;
+			cout << "current: " << current << endl;
+			cout << endl;
+			s.pop();
+
+			//fill queue with adjacent vertices to the start_vertex
+			g.GetToVertices(current, q);
+
+		//	cout << "false = 0 and true = 1" << endl;
+		//	cout << "q.isEmpty(): " << hasCycle << endl;	
+			while (!q.isEmpty())
 			{
-				hasCycle += 1;
-				cout << hasCycle << endl;
-				cout << "we found a cycle." << endl;
-				return hasCycle;
-			}
-			numAdjacent += 1;
-			q.dequeue();
-		}
-		
-		if(!hasCycle)
-		{
-			for (int i = 0; i < adj.size(); i++)
-			{
-				int index = findVertex(v, adj.at(i));
-			
-				//if we haven't visited an adjacent vertex
-				if (!g.IsMarked(v.at(index).destination))
+				cout << "inside the !q.isEmpty() method" << endl;
+				string adjacent = q.getFront();
+				cout << "adjacent: " << adjacent << endl;
+				if(!g.IsMarked(adjacent))
 				{
-					hasCycle += depthfirstsearch(g,s,v);
-				}			
+					s.push(adjacent);
+					adj.push_back(adjacent);
+				}
+
+				else
+				{
+					hasCycle += 1;
+					cout << hasCycle << endl;
+					cout << "we found a cycle." << endl;
+					return hasCycle;
+				}
+				numAdjacent += 1;
+				q.dequeue();
 			}
+			
+			if(hasCycle == 0 && numAdjacent != 0)
+			{
+				cout << "inside hasCycle  == 0 and numAdjacent != 0" << endl;
+				for (int i = 0; i < adj.size(); i++)
+				{
+					int index = findVertex(v, adj.at(i));
+				
+					//if we haven't visited an adjacent vertex
+					if (!g.IsMarked(v.at(index).destination))
+					{
+						cout << "v.at(index).destination is not marked" << endl;
+						cout << "v.at(index).destination: " << v.at(index).destination <<endl;
+						hasCycle += depthfirstsearch(g,s,v);
+					}			
+				}
+			}	
 		}
 	} while (s.size() != 0 and numAdjacent != 0);
 
