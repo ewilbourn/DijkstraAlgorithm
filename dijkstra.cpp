@@ -36,7 +36,7 @@ void printSpaces(int numSpaces);
 int s_numSpaces(string vertex);
 int n_numSpaces(int value);
 bool hasCycle(Graph<string> &g, vector <vertex_info> v);
-bool depthfirstsearch(Graph<string>&g, stack<string>&s, vector <vertex_info> &v);
+int depthfirstsearch(Graph<string>&g, stack<string>&s, vector <vertex_info> &v);
 
 int main(int argc, char *argv[])
 {
@@ -90,17 +90,17 @@ int main(int argc, char *argv[])
 
 	//instantiate our graph and queue objects
 	Graph<string> myGraph(numVertices);
-
+	
 	//call to fill the vertices/edges of the graph	
 	fillGraph(myGraph, uniqueVals, v);
 
 	//call to perform Dijkstra's Algorithm given the starting vertex
 	dijkstra(myGraph, uniqueVals, startingVertex);	
+
 	printArray(uniqueVals);	
 
-	cout << "before hasCycle" << endl;
 	bool cycle = hasCycle(myGraph, cycleVals);
-	cout << "after hasCycle" << endl;
+	cout << (cycle ? "The graph contains a cycle." : "The graph does not contain a cycle.") << endl;
 	
 	return 0;
 }
@@ -307,11 +307,14 @@ void dijkstra (Graph <string> &g, vector <vertex_info> &uniqueVals, string start
 	//mark the adjacent vertex for our starting vertex and return the number of adjacent vertices
 	int numAdjacentVertices = adjacentDistUpdate(g, uniqueVals, start_vertex, marked_indexes);
 
+	cout << "got through the first vertex" << endl;
 	if(numAdjacentVertices != 0)
 	{
+		cout << "numAdjacentVertices != 0" << endl;
 		//iterate through all our uniqueVals in the vector
 		for (int i = 0; i < uniqueVals.size(); i++)
 		{
+			cout << "i: " << i << endl;
 			//our current index is the index of the most recently marked vertex
 			int current_index = marked_indexes.at(marked_indexes.size()-1);
 			string current = uniqueVals.at(current_index).destination;
@@ -333,15 +336,6 @@ int adjacentDistUpdate(Graph<string> g, vector<vertex_info> &uniqueVals, string 
 	Queue <string> q(uniqueVals.size());
 
 	//fill queue with adjacent vertices to the start_vertex
-	g.GetToVertices(current, q);
-
-//	cout << "current: " << current << endl;
-//	while (!q.isEmpty())
-//	{
-//		cout << q.getFront() << endl;
-//		q.dequeue();
-//	}
-
 	g.GetToVertices(current, q);
 	while(!q.isEmpty())
 	{
@@ -495,18 +489,21 @@ bool hasCycle(Graph<string> &g, vector <vertex_info> v)
 
 	string start = v.at(0).destination;
 	s.push(start);
-
-	bool hasCycle = depthfirstsearch(g, s, v);
+	
+	//if hasCycle is greater than 0, then we have a cycle in our graph
+	int hasCycle = depthfirstsearch(g, s, v);
 	
 	cout << "false = 0 and true = 1" << endl;
 	cout << "hasCycle: " << hasCycle << endl;	
-	return hasCycle;	
+		
+	return (hasCycle > 0);	
 }
 
-bool depthfirstsearch(Graph<string>&g, stack<string>&s, vector <vertex_info> &v)
+int depthfirstsearch(Graph<string>&g, stack<string>&s, vector <vertex_info> &v)
 {
 	cout << "in depth first search" <<endl;
 	bool hasCycle = false;	
+	cout << "hasCycle: " << hasCycle << endl;	
 
 	//create a queue that will be filled with adjacent vertices as we call 
 	//getToVertices everytime we get to another vertex
@@ -533,6 +530,7 @@ bool depthfirstsearch(Graph<string>&g, stack<string>&s, vector <vertex_info> &v)
 		g.MarkVertex(current);
 		v.at(index).mark = true;
 		cout << "current: " << current << endl;
+		cout << endl;
 		s.pop();
 
 		//fill queue with adjacent vertices to the start_vertex
@@ -550,22 +548,29 @@ bool depthfirstsearch(Graph<string>&g, stack<string>&s, vector <vertex_info> &v)
 
 			else
 			{
-				hasCycle = true;
+				hasCycle += 1;
+				cout << hasCycle << endl;
+				cout << "we found a cycle." << endl;
+				return hasCycle;
 			}
 			numAdjacent += 1;
 			q.dequeue();
 		}
-
-		for (int i = 0; i < adj.size(); i++)
+		
+		if(!hasCycle)
 		{
-			int index = findVertex(v, adj.at(i));
-			
-			//if we haven't visited an adjacent vertex
-			if (!g.IsMarked(v.at(index).destination))
+			for (int i = 0; i < adj.size(); i++)
 			{
-				depthfirstsearch(g,s,v);
-			}			
+				int index = findVertex(v, adj.at(i));
+			
+				//if we haven't visited an adjacent vertex
+				if (!g.IsMarked(v.at(index).destination))
+				{
+					hasCycle += depthfirstsearch(g,s,v);
+				}			
+			}
 		}
 	}
+
 	return hasCycle;	
 }
