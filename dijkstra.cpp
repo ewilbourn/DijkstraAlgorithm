@@ -521,6 +521,8 @@ bool hasCycle(Graph<string> &g, vector <vertex_info> v)
 						s.push(v.at(i).destination);
 					counter += 1;
 				}
+				else
+					v.at(i).mark = true;
 			}
 			if (counter > 0)
 			{
@@ -552,18 +554,23 @@ int depthfirstsearch(Graph<string>&g, stack<string>s, vector <vertex_info> &v, v
 	//create a queue that will be filled with adjacent vertices as we call 
 	//getToVertices everytime we get to another vertex
 	Queue <string> q (v.size());
+
+	//create a vector with the adjacent vertices for a given vector
+	vector <string> adj;
 	
 	//represents the number of adjacent vertices for a given vertex
 	int numAdjacent;
 
+	//stack to hold the path of the final vertex
+	stack <string> s_final;
+	
 	do	
 	{
+		adj.clear();
 		numAdjacent = 0;
 
 		//set the current vertex we're looking at to be the top of the stack
 		string current = s.top();
-
-		cout << "current: " << current << " before we mark it." << endl;
 
 		//this is needed because if a current vertex has already been marked, but we're 
 		//going through this process again because of the recursive call, we don't want
@@ -575,16 +582,17 @@ int depthfirstsearch(Graph<string>&g, stack<string>s, vector <vertex_info> &v, v
 
 			//mark the vertex in the graph
 			g.MarkVertex(current);
-			
-			cout << "marking vertex: " << current << endl;
 			v.at(index).mark = true;
-			path.push_back(current);
-			s.pop();
-			//cout << "s.top(): " << s.top() << " after popping top." << endl;		
+			//if(hasCycle == 0 )
+			//path.push_back(current);
+
+			s_final.push(current);			
 
 			//fill queue with adjacent vertices to the start_vertex
 			g.GetToVertices(current, q);
 
+			s.pop();
+			cout << "current: " << current << endl;
 			while (!q.isEmpty())
 			{
 				string adjacent = q.getFront();
@@ -592,29 +600,31 @@ int depthfirstsearch(Graph<string>&g, stack<string>s, vector <vertex_info> &v, v
 				if(!g.IsMarked(adjacent))
 				{
 					s.push(adjacent);
+					hasCycle += depthfirstsearch(g,s,v,path);
 				}
 
 				else
 				{
 					cout << adjacent << " marks the end of a cycle." << endl;
 					hasCycle += 1;
+				
+					while (!s_final.empty())
+					{
+						path.push_back(s_final.top());
+						s_final.pop();
+					}
+					
 					return hasCycle;
 				}
-				numAdjacent += 1;
 				q.dequeue();
 			}
-			cout << "s.top(): " << s.top() << " after popping top and adding adjacent vertices." << endl;		
-	
-	//		if(hasCycle == 0 && numAdjacent != 0)
-	//		{
-			//	for (int i = 0; i < adj.size(); i++)
-				while(!s.empty())
+		/*	if(hasCycle == 0 && numAdjacent != 0)
+			{
+				for (int i = 0; i < adj.size(); i++)
 				{
-				//	cout << "current: " << current << " i: " << i << endl;
-					int index = findVertex(v, s.top());
+					int index = findVertex(v, adj.at(i));
 					
-					cout << "s.top(): " << s.top() << " in while loop." <<endl;
-				//	if we haven't visited an adjacent vertex
+					// if we haven't visited an adjacent vertex
 					if (!g.IsMarked(v.at(index).destination))
 					{
 						cout << "current vertex: " << current << endl;
@@ -622,7 +632,6 @@ int depthfirstsearch(Graph<string>&g, stack<string>s, vector <vertex_info> &v, v
 						cout << endl;
 			
 						hasCycle += depthfirstsearch(g,s,v,path);
-						//return depthfirstsearch(g,s,v,path);
 					}
 					else
 					{
@@ -630,13 +639,13 @@ int depthfirstsearch(Graph<string>&g, stack<string>s, vector <vertex_info> &v, v
 						s.pop();			
 					}
 				}
-	//		}	
+			}*/	
 		}
-	//	else
-	//	{
-			//path.erase(remove(path.begin(), path.end(), s.top()), path.end());
-	//		s.pop();
-	//	}
+		else
+		{
+			path.erase(remove(path.begin(), path.end(), s.top()), path.end());
+			s.pop();
+		}
 		
 	} while (s.size() != 0 and numAdjacent != 0);
 
@@ -653,9 +662,10 @@ void printCycle(vector <string> path)
 {
 	cout << "The Cycle is: " << endl;
 	cout << "Vertex" << " To" << endl;
-	for (int i = 0; (i+1) < path.size(); i++)
+	//for (int i = 0; (i+1) < path.size(); i++)
+	for (int i = (path.size()-1); i > 0; i--)
 	{
-		cout << path.at(i) << "->" << path.at(i+1) << endl; 
+		cout << path.at(i) << "->" << path.at(i-1) << endl; 
 	}
-	cout << path.at(path.size()-1) << "->" << path.at(0) << endl;
+	cout << path.at(0) << "->" << path.at(path.size()-1) << endl;
 }
