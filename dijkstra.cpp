@@ -496,10 +496,8 @@ bool hasCycle(Graph<string> &g, vector <vertex_info> v)
 	//if hasCycle is greater than 0, then we have a cycle in our graph
 	int hasCycle = depthfirstsearch(g, s, s_final, v, path);
 	
-	cout << "*******out of hasCycle method****************" << endl;
 	if (hasCycle == 0)
 	{
-		 cout << "hasCycle == 0" << endl;	
 		//make sure that all vertices were visited in our depthfirstsearch
 		//store the number of unvisited vertices in an integer "counter"
 		int counter;
@@ -534,7 +532,6 @@ bool hasCycle(Graph<string> &g, vector <vertex_info> v)
 			{
 				//clear our vector of strings for the path for a cycle too
 				path.clear();			
-				cout << "path.size(): " << path.size() << endl;
 				hasCycle = depthfirstsearch(g, s, s_final, v, path);
 			}
 		} while (counter > 0);
@@ -594,12 +591,9 @@ int depthfirstsearch(Graph<string>&g, stack<string>s, stack <string> &s_final, v
 			g.GetToVertices(current, q);
 
 			s.pop();
-			cout << "current: " << current << endl;
 			while (!q.isEmpty())
 			{
 				string adjacent = q.getFront();
-				cout << "pushing adjacent: " << adjacent << endl;
-				cout << "hasCycle : " << hasCycle << endl;
 				if(!g.IsMarked(adjacent))
 				{
 					s.push(adjacent);
@@ -608,7 +602,6 @@ int depthfirstsearch(Graph<string>&g, stack<string>s, stack <string> &s_final, v
 
 				else if (g.IsMarked(adjacent) && hasCycle == 0 && path.size() == 0)
 				{
-					cout << adjacent << " marks the end of a cycle." << endl;
 					s_final.push(adjacent);
 					
 					hasCycle += 1;
@@ -619,12 +612,16 @@ int depthfirstsearch(Graph<string>&g, stack<string>s, stack <string> &s_final, v
 						s_final.pop();
 						size+=1;
 					}
-				
+			
+					//We need this case to fix the printing for ginfile4.dat.
+					//This essentially says that if the first value in the path (which 
+					//is at path.size()-1, because we're printing from a stack which is 
+					//LIFO) is not the same value as the adjacent value that ends the 
+					//cycle (which should be the first value in the path), then delete it
+					//from the path vector.
 					if (path.at(path.size()-1) != adjacent)
 						path.erase(remove(path.begin(), path.end(), path.at(path.size()-1)), path.end());
 
-					cout << "size of stack was: " << size << endl;
-					cout << "returning hasCycle: " << hasCycle << endl;	
 					return hasCycle;
 				}
 				q.dequeue();
@@ -633,9 +630,6 @@ int depthfirstsearch(Graph<string>&g, stack<string>s, stack <string> &s_final, v
 		
 	} while (s.size() != 0 and numAdjacent != 0);
 
-	cout << "s.size(): " << s.size() << endl;
-	
-	cout << "end of loop" << endl; 	
 	return hasCycle;	
 }
 
