@@ -36,7 +36,7 @@ void printSpaces(int numSpaces);
 int s_numSpaces(string vertex);
 int n_numSpaces(int value);
 bool hasCycle(Graph<string> &g, vector <vertex_info> v);
-int depthfirstsearch(Graph<string>&g, stack<string>s, vector <vertex_info> &v, vector <string> &path);
+int depthfirstsearch(Graph<string>&g, stack<string>s, stack<string>&s_final,vector <vertex_info> &v, vector <string> &path);
 void printCycle(vector <string> path);
 int main(int argc, char *argv[])
 {
@@ -490,8 +490,11 @@ bool hasCycle(Graph<string> &g, vector <vertex_info> v)
 	//vector of strings to hold all the vertices that make up the path of a cycle
 	vector <string> path;
 	
+	//stack to hold the path of the final vertex
+	stack <string> s_final;
+	
 	//if hasCycle is greater than 0, then we have a cycle in our graph
-	int hasCycle = depthfirstsearch(g, s, v, path);
+	int hasCycle = depthfirstsearch(g, s, s_final, v, path);
 	
 	cout << "*******out of hasCycle method****************" << endl;
 	if (hasCycle == 0)
@@ -509,6 +512,9 @@ bool hasCycle(Graph<string> &g, vector <vertex_info> v)
 			while (!s.empty())
 				s.pop();
 			
+			while (!s_final.empty())
+				s_final.pop();
+	
 			//initialize the number of unvisited vertices to zero
 			counter = 0;
 			for (int i = 0; i < v.size(); i++)	
@@ -528,7 +534,7 @@ bool hasCycle(Graph<string> &g, vector <vertex_info> v)
 			{
 				//clear our vector of strings for the path for a cycle too
 				path.clear();			
-				hasCycle = depthfirstsearch(g, s, v, path);
+				hasCycle = depthfirstsearch(g, s, s_final, v, path);
 			}
 		} while (counter > 0);
 	}
@@ -547,7 +553,7 @@ bool hasCycle(Graph<string> &g, vector <vertex_info> v)
 //
 //postcondition: return an integer that tells us if there's a cycle found from the depth first search; 
 //0 = no cycle, anyting > 0 = has a cycle
-int depthfirstsearch(Graph<string>&g, stack<string>s, vector <vertex_info> &v, vector <string> &path)
+int depthfirstsearch(Graph<string>&g, stack<string>s, stack <string> &s_final, vector <vertex_info> &v, vector <string> &path)
 {
 	int hasCycle = 0;	
 
@@ -561,9 +567,6 @@ int depthfirstsearch(Graph<string>&g, stack<string>s, vector <vertex_info> &v, v
 	//represents the number of adjacent vertices for a given vertex
 	int numAdjacent;
 
-	//stack to hold the path of the final vertex
-	stack <string> s_final;
-	
 	do	
 	{
 		adj.clear();
@@ -597,49 +600,33 @@ int depthfirstsearch(Graph<string>&g, stack<string>s, vector <vertex_info> &v, v
 			{
 				string adjacent = q.getFront();
 				cout << "pushing adjacent: " << adjacent << endl;
+				cout << "hasCycle : " << hasCycle << endl;
 				if(!g.IsMarked(adjacent))
 				{
 					s.push(adjacent);
-					hasCycle += depthfirstsearch(g,s,v,path);
+					hasCycle += depthfirstsearch(g,s,s_final,v,path);
 				}
 
-				else
+				else if (g.IsMarked(adjacent) && hasCycle == 0 && path.size() == 0)
 				{
 					cout << adjacent << " marks the end of a cycle." << endl;
+					s_final.push(adjacent);
+					
 					hasCycle += 1;
-				
+					int size = 0;	
 					while (!s_final.empty())
 					{
 						path.push_back(s_final.top());
 						s_final.pop();
+						size+=1;
 					}
-					
+				
+					cout << "size of stack was: " << size << endl;
+					cout << "returning hasCycle: " << hasCycle << endl;	
 					return hasCycle;
 				}
 				q.dequeue();
 			}
-		/*	if(hasCycle == 0 && numAdjacent != 0)
-			{
-				for (int i = 0; i < adj.size(); i++)
-				{
-					int index = findVertex(v, adj.at(i));
-					
-					// if we haven't visited an adjacent vertex
-					if (!g.IsMarked(v.at(index).destination))
-					{
-						cout << "current vertex: " << current << endl;
-						cout << v.at(index).destination << " isn't marked; call depthfirstsearch." << endl;
-						cout << endl;
-			
-						hasCycle += depthfirstsearch(g,s,v,path);
-					}
-					else
-					{
-						path.erase(remove(path.begin(), path.end(), s.top()), path.end());
-						s.pop();			
-					}
-				}
-			}*/	
 		}
 		else
 		{
@@ -667,5 +654,4 @@ void printCycle(vector <string> path)
 	{
 		cout << path.at(i) << "->" << path.at(i-1) << endl; 
 	}
-	cout << path.at(0) << "->" << path.at(path.size()-1) << endl;
 }
