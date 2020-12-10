@@ -534,6 +534,7 @@ bool hasCycle(Graph<string> &g, vector <vertex_info> v)
 			{
 				//clear our vector of strings for the path for a cycle too
 				path.clear();			
+				cout << "path.size(): " << path.size() << endl;
 				hasCycle = depthfirstsearch(g, s, s_final, v, path);
 			}
 		} while (counter > 0);
@@ -586,8 +587,6 @@ int depthfirstsearch(Graph<string>&g, stack<string>s, stack <string> &s_final, v
 			//mark the vertex in the graph
 			g.MarkVertex(current);
 			v.at(index).mark = true;
-			//if(hasCycle == 0 )
-			//path.push_back(current);
 
 			s_final.push(current);			
 
@@ -621,17 +620,15 @@ int depthfirstsearch(Graph<string>&g, stack<string>s, stack <string> &s_final, v
 						size+=1;
 					}
 				
+					if (path.at(path.size()-1) != adjacent)
+						path.erase(remove(path.begin(), path.end(), path.at(path.size()-1)), path.end());
+
 					cout << "size of stack was: " << size << endl;
 					cout << "returning hasCycle: " << hasCycle << endl;	
 					return hasCycle;
 				}
 				q.dequeue();
 			}
-		}
-		else
-		{
-			path.erase(remove(path.begin(), path.end(), s.top()), path.end());
-			s.pop();
 		}
 		
 	} while (s.size() != 0 and numAdjacent != 0);
