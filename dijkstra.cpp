@@ -35,7 +35,7 @@ void printArray(vector<vertex_info> uniqueVals);
 void printSpaces(int numSpaces);
 int s_numSpaces(string vertex);
 int n_numSpaces(int value);
-bool hasCycle(Graph<string> &g, vector <vertex_info> v);
+vector <string> hasCycle(Graph<string> &g, vector <vertex_info> v);
 int depthfirstsearch(Graph<string>&g, stack<string>s, stack<string>&s_final,vector <vertex_info> &v, vector <string> &path);
 void printCycle(vector <string> path);
 int main(int argc, char *argv[])
@@ -99,9 +99,19 @@ int main(int argc, char *argv[])
 
 	printArray(uniqueVals);	
 
-	bool cycle = hasCycle(myGraph, cycleVals);
-	cout << (cycle ? "The graph contains a cycle." : "The graph does not contain a cycle.") << endl;
-	
+	vector <string> cyclePath = hasCycle(myGraph, cycleVals);
+
+	if(cyclePath.size() > 0)
+	{
+		printSpaces(23);
+		cout << "\t\tThe graph contains a cycle." << endl;
+		printCycle(cyclePath);	
+	}
+	else
+	{
+		printSpaces(19);
+		cout << "\t\tThe graph does not contain a cycle." << endl;
+	}
 	return 0;
 }
 
@@ -468,14 +478,11 @@ void printArray(vector<vertex_info> uniqueVals)
 	cout << "\t\t--------------------------------------------------------------------------" << endl;
 }
 
-//for depth first search, mark each adjacent vertex as you visit it
-//pop, output, mark, and push adjacent vertices
-//1. add first vertex to the stack; pop it, output it, and mark it (in graph class)
-//2. push the adjacent vertices to the stack; pop the top value, output it, mark it,
-//and don't repush the marked vertex
-//3. keep repeating until we find a vertex with no adjacent vertices, or until we've
-//reached our starting vertex
-bool hasCycle(Graph<string> &g, vector <vertex_info> v)
+//method that returns a vector of strings that has our cycle path in it; if the size of this vector is
+//zero, then we don't have a cycle. Else, we have a cycle.
+//precondition: pass in our graph object and the vector of vertex_info structs that has all our vertices
+//postcondition: return a vector of strings that contains our cycle path
+vector <string> hasCycle(Graph<string> &g, vector <vertex_info> v)
 {
 	//clear out the marks from when we used Dijstra's Algorithm with this graph
 	g.ClearMarks();
@@ -495,7 +502,10 @@ bool hasCycle(Graph<string> &g, vector <vertex_info> v)
 	
 	//if hasCycle is greater than 0, then we have a cycle in our graph
 	int hasCycle = depthfirstsearch(g, s, s_final, v, path);
-	
+
+	//If the graph isn't connected, then there's a chance that on the first pass we
+	//won't find a cycle. If this is the case, then keep calling depthfirstsearch until
+	//all vertices have been visited.	
 	if (hasCycle == 0)
 	{
 		//make sure that all vertices were visited in our depthfirstsearch
@@ -510,6 +520,7 @@ bool hasCycle(Graph<string> &g, vector <vertex_info> v)
 			while (!s.empty())
 				s.pop();
 			
+			//empty the stack
 			while (!s_final.empty())
 				s_final.pop();
 	
@@ -525,8 +536,8 @@ bool hasCycle(Graph<string> &g, vector <vertex_info> v)
 						s.push(v.at(i).destination);
 					counter += 1;
 				}
-				else
-					v.at(i).mark = true;
+				//else
+				//	v.at(i).mark = true;
 			}
 			if (counter > 0)
 			{
@@ -536,100 +547,102 @@ bool hasCycle(Graph<string> &g, vector <vertex_info> v)
 			}
 		} while (counter > 0);
 	}
-	if (hasCycle > 0)
-		printCycle(path);
-	return (hasCycle > 0);	
+
+	return path;	
 }
 
 //method that returns an integer that denotes if we have a cycle or not - any value greater than 0
-//tells us that we have a cycle; anything that's 0 indicates that we don't have a cycle
+//tell us that we have a cycle; anything that's 0 indicates that we don't have a cycle
 //
 //precondition: g = graph that we're passing in, s = the stack of strings, where we've already pushed
 //the first value into it, which is the starting position, v = the vector of vertex_info objects so that
 //we can mark vertices as we visit them, path = the vector of strings that will be filled with vertices on 
 //the path to our cycle
 //
-//postcondition: return an integer that tells us if there's a cycle found from the depth first search; 
-//0 = no cycle, anyting > 0 = has a cycle
+//postcondition: return an integer that tells us if there's a cycle found from the depth first search;
+//0 = no cycle, anything > 0 = has a cycle
 int depthfirstsearch(Graph<string>&g, stack<string>s, stack <string> &s_final, vector <vertex_info> &v, vector <string> &path)
 {
+	//integer that represents if we have a cycle or not; if this value stays 0,
+	//then we have a cycle. If it's greater than 0, then we have a cycle.
 	int hasCycle = 0;	
 
 	//create a queue that will be filled with adjacent vertices as we call 
 	//getToVertices everytime we get to another vertex
 	Queue <string> q (v.size());
 
-	//create a vector with the adjacent vertices for a given vector
-	vector <string> adj;
-	
-	//represents the number of adjacent vertices for a given vertex
-	int numAdjacent;
 
-	do	
+	//set the current vertex we're looking at to be the top of the stack
+	string current = s.top();
+
+	//this is needed because if a current vertex has already been marked, but we're 
+	//going through this process again because of the recursive call, we don't want
+	//it to accidentally tell us there's a cycle when there isn't
+	if(!g.IsMarked(current))
 	{
-		adj.clear();
-		numAdjacent = 0;
+		//find index of vertex in our vector of <vertex_info> structs
+		int index = findVertex(v, current);
 
-		//set the current vertex we're looking at to be the top of the stack
-		string current = s.top();
+		//mark the vertex in the graph
+		g.MarkVertex(current);
+		v.at(index).mark = true;
 
-		//this is needed because if a current vertex has already been marked, but we're 
-		//going through this process again because of the recursive call, we don't want
-		//it to accidentally tell us there's a cycle when there isn't
-		if(!g.IsMarked(current))
-		{
-			//find index of vertex in our vector of <vertex_info> structs
-			int index = findVertex(v, current);
+		//go ahead and push the current vertex to our s_final stack, which
+		//will fill up our path vector, which will be printed our at the very 
+		//end with a cycle that was found in the graph.
+		s_final.push(current);			
 
-			//mark the vertex in the graph
-			g.MarkVertex(current);
-			v.at(index).mark = true;
-
-			s_final.push(current);			
-
-			//fill queue with adjacent vertices to the start_vertex
-			g.GetToVertices(current, q);
-
-			s.pop();
-			while (!q.isEmpty())
-			{
-				string adjacent = q.getFront();
-				if(!g.IsMarked(adjacent))
-				{
-					s.push(adjacent);
-					hasCycle += depthfirstsearch(g,s,s_final,v,path);
-				}
-
-				else if (g.IsMarked(adjacent) && hasCycle == 0 && path.size() == 0)
-				{
-					s_final.push(adjacent);
-					
-					hasCycle += 1;
-					int size = 0;	
-					while (!s_final.empty())
-					{
-						path.push_back(s_final.top());
-						s_final.pop();
-						size+=1;
-					}
+		//fill queue with adjacent vertices to the start_vertex
+		g.GetToVertices(current, q);
+	
+		//go ahead and pop the top, since we've already visited it.
+		s.pop();
 			
-					//We need this case to fix the printing for ginfile4.dat.
-					//This essentially says that if the first value in the path (which 
-					//is at path.size()-1, because we're printing from a stack which is 
-					//LIFO) is not the same value as the adjacent value that ends the 
-					//cycle (which should be the first value in the path), then delete it
-					//from the path vector.
-					if (path.at(path.size()-1) != adjacent)
-						path.erase(remove(path.begin(), path.end(), path.at(path.size()-1)), path.end());
-
-					return hasCycle;
-				}
-				q.dequeue();
+		//This runs while we still have adjacent vertices in our queue, that was filled by 
+		//our call to GetToVertics in the graph class.
+		while (!q.isEmpty())
+		{
+			string adjacent = q.getFront();
+				
+			//If an adjacent vertex hasn't been visited, then go ahead and push it to
+			//the stack and call depthfirstsearch (recursive call) so that we can see
+			//if there is a cycle down that path.
+			if(!g.IsMarked(adjacent))
+			{
+				s.push(adjacent);
+				hasCycle += depthfirstsearch(g,s,s_final,v,path);
 			}
+					
+			//We have to include path.size() == 0 because if the program finds a second 
+			//cycle after finding the initial one, we don't want it to mess up our path
+			//vector. We are only printing out the first cycle the program finds.
+			else if (g.IsMarked(adjacent) && hasCycle == 0 && path.size() == 0)
+			{
+				s_final.push(adjacent);
+					
+				hasCycle += 1;
+				int size = 0;	
+				while (!s_final.empty())
+				{
+					path.push_back(s_final.top());
+					s_final.pop();
+					size+=1;
+				}
+			
+				//We need this case to fix the printing for ginfile4.dat.
+				//This essentially says that if the first value in the path (which 
+				//is at path.size()-1, because we're printing from a stack which is 
+				//LIFO) is not the same value as the adjacent value that ends the 
+				//cycle (which should be the first value in the path), then delete it
+				//from the path vector.
+				if (path.at(path.size()-1) != adjacent)
+					path.erase(remove(path.begin(), path.end(), path.at(path.size()-1)), path.end());
+				return hasCycle;
+			}
+			q.dequeue();
 		}
-		
-	} while (s.size() != 0 and numAdjacent != 0);
-
+	}
+	
 	return hasCycle;	
 }
 
@@ -638,11 +651,37 @@ int depthfirstsearch(Graph<string>&g, stack<string>s, stack <string> &s_final, v
 //postcondition: return nothing, but the path is printed
 void printCycle(vector <string> path)
 {
-	cout << "The Cycle is: " << endl;
-	cout << "Vertex" << " To" << endl;
-	//for (int i = 0; (i+1) < path.size(); i++)
+	string title1 = "The Cycle is:";
+	string title2 = "Vertex";
+	string title3 = "To";
+	
+	//variables to hold the number of spaces needed to precede a string
+	int numSpaces;
+	
+	numSpaces = s_numSpaces(title1);
+	printSpaces(numSpaces);
+	cout << title1 << endl;
+
+	numSpaces = s_numSpaces(title2);
+	printSpaces(numSpaces);
+	cout << title2;
+
+	numSpaces = s_numSpaces(title3) + s_numSpaces("->");
+	printSpaces(numSpaces);
+	cout << title3 << endl;
+	
 	for (int i = (path.size()-1); i > 0; i--)
 	{
-		cout << path.at(i) << "->" << path.at(i-1) << endl; 
+		numSpaces = s_numSpaces(path.at(i));
+		printSpaces(numSpaces);
+		cout << path.at(i);
+
+		numSpaces = s_numSpaces("->");
+		printSpaces(numSpaces);
+		cout << "->";
+	
+		numSpaces = s_numSpaces(path.at(i-1));
+		printSpaces(numSpaces);
+		cout << path.at(i-1) << endl;
 	}
 }
