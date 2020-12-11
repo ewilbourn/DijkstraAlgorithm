@@ -75,9 +75,11 @@ int main(int argc, char *argv[])
 	printInfo(uniqueVals, numVertices);
 
 	//get the starting position for the graph
-	string startingVertex;
+	//string startingVertex;
+	char startingVertex[30];
 	cout << "\n\t\tPlease input your starting vertex: ";
-	cin >> startingVertex;
+//	cin >> startingVertex;
+	cin.getline(startingVertex,30);
 
 	int index = findVertex(uniqueVals, startingVertex);
 	while (index == -1)
